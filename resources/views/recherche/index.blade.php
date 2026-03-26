@@ -97,5 +97,24 @@ document.addEventListener("click", function(e){
     }
 
 });
+<form action="{{ route('recherche') }}" method="GET">
+    <input type="text" name="titre" placeholder="Recherche par titre" value="{{ request('titre') }}">
+    <input type="text" name="auteur" placeholder="Recherche par auteur" value="{{ request('auteur') }}">
+    
+    <!-- Filtre par catégorie -->
+    <select name="categorie">
+        <option value="">Choisir une catégorie</option>
+        <option value="Informatique" {{ request('categorie') == 'Informatique' ? 'selected' : '' }}>Informatique</option>
+        <option value="Roman" {{ request('categorie') == 'Roman' ? 'selected' : '' }}>Roman</option>
+        <option value="Histoire" {{ request('categorie') == 'Histoire' ? 'selected' : '' }}>Histoire</option>
+    </select>
 
+    <!-- Filtre par disponibilité -->
+    <label>
+        <input type="checkbox" name="disponible" {{ request('disponible') ? 'checked' : '' }}>
+        Disponible
+    </label>
+
+    <button type="submit">Rechercher</button>
+</form>
 </script>

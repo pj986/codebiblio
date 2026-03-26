@@ -67,6 +67,17 @@
 
 
 <hr>
+@foreach($user->emprunts as $emprunt)
+    <div style="margin-bottom:20px;border:1px solid #ccc;padding:10px">
+        <p>Date emprunt : {{ $emprunt->date_emprunt }}</p>
+        <p>Date retour prévue : {{ $emprunt->date_retour }}</p>
+        <ul>
+            @foreach($emprunt->exemplaires as $ex)
+                <li>{{ $ex->livre->titre }}</li>
+            @endforeach
+        </ul>
+    </div>
+@endforeach
 
 <a href="/">Retour au catalogue</a>
 

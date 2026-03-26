@@ -8,12 +8,13 @@ class ProfilController extends Controller
 {
 
     public function show($id)
-    {
-
-        $user = User::with('emprunts.exemplaires.livre')->findOrFail($id);
-
-        return view('profil.show', compact('user'));
-
+{
+    if(auth()->id() != $id){
+        abort(403);
     }
 
+    $user = User::findOrFail($id);
+
+    return view('profil.show', compact('user'));
+}
 }

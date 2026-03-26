@@ -50,4 +50,8 @@ class User extends Authenticatable
 {
     return $this->hasMany(\App\Models\Emprunt::class);
 }
+public function favoris()
+{
+    return $this->hasMany(\App\Models\Favori::class);
+}
 }

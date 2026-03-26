@@ -1,109 +1,137 @@
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<h1>Dashboard Bibliothèque</h1>
-
-<hr>
-<a href="/scanner" style="
-display:inline-block;
-padding:10px 15px;
-background:#4CAF50;
-color:white;
-text-decoration:none;
-border-radius:5px;
-margin-bottom:20px;
-">
-📱 Scanner un livre
-</a>
-
-<h2>Statistiques générales</h2>
-
-<ul>
-<li><strong>Livres :</strong> {{ $livres }}</li>
-<li><strong>Exemplaires :</strong> {{ $exemplaires }}</li>
-<li><strong>Utilisateurs :</strong> {{ $users }}</li>
-<li><strong>Emprunts en cours :</strong> {{ $empruntsEnCours }}</li>
-</ul>
-
-<hr>
-
-<h2>Graphique des ressources</h2>
-
-<canvas id="statsChart" width="400" height="200"></canvas>
-
-<hr>
-
-<h2>Top livres empruntés</h2>
-
-<canvas id="livresChart" width="400" height="200"></canvas>
-
-<br>
-
-<a href="/bo/profils">Gestion utilisateurs</a>
-<br>
-<a href="/">Retour catalogue</a>
-
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>Dashboard Admin</title>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<style>
+
+body {
+    font-family: Arial;
+    margin: 0;
+    background: #f4f6f9;
+}
+
+header {
+    background: #2c3e50;
+    color: white;
+    padding: 20px;
+}
+
+.container {
+    padding: 30px;
+}
+
+.cards {
+    display: flex;
+    gap: 20px;
+    margin-bottom: 30px;
+}
+
+.card {
+    flex: 1;
+    background: white;
+    padding: 20px;
+    border-radius: 10px;
+    text-align: center;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+}
+
+.card h2 {
+    margin: 0;
+    font-size: 30px;
+}
+
+.card p {
+    color: #777;
+}
+
+.chart-container {
+    background: white;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+}
+
+.nav {
+    margin-top: 20px;
+}
+
+.nav a {
+    margin-right: 15px;
+    text-decoration: none;
+    color: #3498db;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<header>
+    <h1>📊 Dashboard Administrateur</h1>
+</header>
+
+<div class="container">
+
+    <!-- CARTES STATS -->
+    <div class="cards">
+
+        <div class="card">
+            <h2>{{ $users }}</h2>
+            <p>Utilisateurs</p>
+        </div>
+
+        <div class="card">
+            <h2>{{ $livres }}</h2>
+            <p>Livres</p>
+        </div>
+
+        <div class="card">
+            <h2>{{ $emprunts }}</h2>
+            <p>Emprunts</p>
+        </div>
+
+    </div>
+
+    <!-- GRAPH -->
+    <div class="chart-container">
+        <canvas id="chart"></canvas>
+    </div>
+
+    <!-- NAV -->
+    <div class="nav">
+        <a href="/bo/profils">👥 Utilisateurs</a>
+        <a href="/bo/logs">📜 Logs</a>
+        <a href="/">🏠 Site</a>
+    </div>
+
+</div>
 
 <script>
 
-const statsCtx = document.getElementById('statsChart');
+const ctx = document.getElementById('chart');
 
-new Chart(statsCtx, {
-
+new Chart(ctx, {
     type: 'bar',
-
     data: {
-
-        labels: ['Livres','Exemplaires','Utilisateurs','Emprunts'],
-
+        labels: ['Utilisateurs', 'Livres', 'Emprunts'],
         datasets: [{
-
-            label: 'Statistiques bibliothèque',
-
-            data: [
-                {{ $livres }},
-                {{ $exemplaires }},
-                {{ $users }},
-                {{ $empruntsEnCours }}
-            ]
-
+            label: 'Statistiques',
+            data: [{{ $users }}, {{ $livres }}, {{ $emprunts }}],
+            borderWidth: 1
         }]
-
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false
     }
-
-});
-
-
-const livresCtx = document.getElementById('livresChart');
-
-new Chart(livresCtx, {
-
-    type: 'pie',
-
-    data: {
-
-        labels: [
-
-            @foreach($topLivres as $livre)
-                "{{ $livre->titre }}",
-            @endforeach
-
-        ],
-
-        datasets: [{
-
-            data: [
-
-                @foreach($topLivres as $livre)
-                    {{ $livre->total }},
-                @endforeach
-
-            ]
-
-        }]
-
-    }
-
 });
 
 </script>
+
+</body>
+</html>
