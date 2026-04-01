@@ -32,9 +32,9 @@ function onScanSuccess(decodedText) {
     .then(data => {
 
         if(data.success){
-            alert("Livre emprunté avec succès");
+            showToast("Livre emprunté avec succès");
         }else{
-            alert(data.error);
+            showToast(data.error, true); // true pour erreur
         }
 
     });

@@ -22,5 +22,12 @@ public function exemplaires()
 {
     return $this->belongsToMany(\App\Models\Exemplaire::class);
 }
-
+public function livre()
+{
+    return $this->belongsTo(\App\Models\Livre::class);
+}
+public function exemplaire()
+{
+    return $this->belongsTo(Exemplaire::class);
+}
 }

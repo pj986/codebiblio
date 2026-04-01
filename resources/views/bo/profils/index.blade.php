@@ -103,7 +103,7 @@ if(localStorage.getItem("dark") === "true"){
 </head>
 
 <body>
-
+<x-back-button />
 <header>
     <h2>👥 Admin - Utilisateurs</h2>
     <button onclick="toggleDark()">🌙</button>

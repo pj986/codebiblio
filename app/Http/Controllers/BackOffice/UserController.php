@@ -128,4 +128,51 @@ class UserController extends Controller
 
     return $response;
 }
+public function show($id, Request $request)
+{
+    // Récupère l'utilisateur avec ses emprunts et exemplaires associés
+    $user = \App\Models\User::with(['emprunts.exemplaires.livre'])
+        ->findOrFail($id);
+
+    // Tri dynamique basé sur la requête (par défaut, tri par date d'emprunt)
+    $sortBy = $request->get('sortBy', 'date_emprunt');
+    $sortDir = $request->get('sortDir', 'desc');
+
+    // Récupère les emprunts de l'utilisateur avec tri
+    $empruntsQuery = $user->emprunts()->orderBy($sortBy, $sortDir);
+
+    // Exécute la requête pour obtenir les emprunts triés
+    $emprunts = $empruntsQuery->get();
+
+    return view('bo.profils.show', compact('user', 'emprunts', 'sortBy', 'sortDir'));
+}
+public function store(Request $request)
+{
+    // Validation des données
+    $request->validate([
+        'name' => 'required|string|max:255',
+        'email' => 'required|email|unique:users,email',
+        'password' => 'required|string|min:8|confirmed',  // Validation du mot de passe et de la confirmation
+        'role' => 'required|in:user,admin'
+    ],
+    [
+    'name.required' => 'Le nom est obligatoire.',
+    'email.required' => 'L\'email est obligatoire.',
+    'email.unique' => 'Cet email est déjà utilisé.',
+    'password.required' => 'Le mot de passe est obligatoire.',
+    'password.min' => 'Le mot de passe doit comporter au moins 8 caractères.',
+    'role.required' => 'Le rôle est obligatoire.',
+    'role.in' => 'Le rôle doit être soit "utilisateur" soit "administrateur".',
+]);
+
+    // Création de l'utilisateur
+    $user = new User();
+    $user->name = $request->name;
+    $user->email = $request->email;
+    $user->password = Hash::make($request->password);  // Hachage du mot de passe
+    $user->role = $request->role;
+    $user->save();
+
+    return redirect()->route('bo.profils.index')->with('success', 'Utilisateur ajouté avec succès.');
+}
 }

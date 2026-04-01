@@ -1,120 +1,128 @@
-<h1>Recherche de livres</h1>
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>Scanner QR Code</title>
 
-<div style="width:400px;position:relative">
+<meta name="csrf-token" content="{{ csrf_token() }}">
 
-<input 
-    type="text" 
-    id="search" 
-    placeholder="Rechercher un livre..."
-    style="width:100%;padding:10px;font-size:16px"
->
+<style>
 
-<div id="results" style="
-    position:absolute;
-    background:white;
-    border:1px solid #ccc;
-    width:100%;
-    display:none;
-"></div>
+body {
+    font-family: Arial;
+    text-align: center;
+    background: #f4f6f9;
+    padding: 30px;
+}
 
-</div>
+#reader {
+    margin: auto;
+    width: 400px;
+}
+
+#result {
+    margin-top: 20px;
+    font-size: 18px;
+}
+
+/* 💎 TOAST */
+.toast {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background: #2ecc71;
+    color: white;
+    padding: 12px 20px;
+    border-radius: 8px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+}
+
+</style>
+
+</head>
+
+<body>
+
+<!-- 🔙 Bouton retour -->
+<x-back-button />
+
+<h1>📷 Scanner un livre</h1>
+
+<div id="reader"></div>
+
+<p id="result"></p>
+
+<!-- Librairie QR -->
+<script src="https://unpkg.com/html5-qrcode"></script>
 
 <script>
 
-const input = document.getElementById("search");
-const results = document.getElementById("results");
+let scannerStopped = false;
 
-input.addEventListener("keyup", function(){
+function showToast(message, isError = false) {
 
-    const query = input.value;
+    const toast = document.createElement("div");
+    toast.className = "toast";
+    toast.innerText = message;
 
-    if(query.length < 2){
-
-        results.style.display = "block";
-        results.innerHTML = "<div style='padding:10px'>Tapez au moins 2 caractères</div>";
-        return;
-
+    if(isError){
+        toast.style.background = "#e74c3c";
     }
 
-    fetch("/bo/api/recherche-livres?q=" + query)
+    document.body.appendChild(toast);
 
-    .then(response => response.json())
+    setTimeout(() => toast.remove(), 3000);
+}
 
+function onScanSuccess(decodedText) {
+
+    // 🔥 empêche double scan
+    if(scannerStopped) return;
+    scannerStopped = true;
+
+    document.getElementById("result").innerText =
+        "QR détecté : " + decodedText;
+
+    fetch("/bo/scanner/emprunter", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            "X-CSRF-TOKEN": document.querySelector('meta[name="csrf-token"]').content
+        },
+        body: JSON.stringify({
+            exemplaire_id: decodedText
+        })
+    })
+    .then(res => res.json())
     .then(data => {
 
-        results.innerHTML = "";
-
-        if(data.length === 0){
-
-            results.style.display = "block";
-            results.innerHTML = "<div style='padding:10px'>Aucun livre trouvé</div>";
-            return;
-
+        if(data.success){
+            showToast("📖 Livre emprunté !");
+        } else {
+            showToast(data.error, true);
         }
 
-        results.style.display = "block";
+        // 🔄 relancer scan après 3s
+        setTimeout(() => {
+            scannerStopped = false;
+        }, 3000);
 
-        data.forEach(livre => {
-
-            const div = document.createElement("div");
-
-            div.style.padding = "10px";
-            div.style.cursor = "pointer";
-            div.style.borderBottom = "1px solid #eee";
-
-            div.innerHTML =
-                "<strong>" + livre.titre + "</strong><br>" +
-                "<small>Auteur : " + livre.auteur + "</small>";
-
-            div.addEventListener("mouseover", function(){
-
-                div.style.background = "#f3f3f3";
-
-            });
-
-            div.addEventListener("mouseout", function(){
-
-                div.style.background = "white";
-
-            });
-
-            results.appendChild(div);
-
-        });
-
+    })
+    .catch(err => {
+        console.error(err);
+        showToast("Erreur serveur", true);
+        scannerStopped = false;
     });
+}
 
-});
+const html5QrcodeScanner = new Html5QrcodeScanner(
+    "reader",
+    { fps: 10, qrbox: 250 }
+);
 
-// fermer si on clique ailleurs
+html5QrcodeScanner.render(onScanSuccess);
 
-document.addEventListener("click", function(e){
-
-    if(!input.contains(e.target)){
-
-        results.style.display = "none";
-
-    }
-
-});
-<form action="{{ route('recherche') }}" method="GET">
-    <input type="text" name="titre" placeholder="Recherche par titre" value="{{ request('titre') }}">
-    <input type="text" name="auteur" placeholder="Recherche par auteur" value="{{ request('auteur') }}">
-    
-    <!-- Filtre par catégorie -->
-    <select name="categorie">
-        <option value="">Choisir une catégorie</option>
-        <option value="Informatique" {{ request('categorie') == 'Informatique' ? 'selected' : '' }}>Informatique</option>
-        <option value="Roman" {{ request('categorie') == 'Roman' ? 'selected' : '' }}>Roman</option>
-        <option value="Histoire" {{ request('categorie') == 'Histoire' ? 'selected' : '' }}>Histoire</option>
-    </select>
-
-    <!-- Filtre par disponibilité -->
-    <label>
-        <input type="checkbox" name="disponible" {{ request('disponible') ? 'checked' : '' }}>
-        Disponible
-    </label>
-
-    <button type="submit">Rechercher</button>
-</form>
 </script>
+
+</body>
+</html>

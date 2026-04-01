@@ -1,115 +1,45 @@
-<x-guest-layout>
+@extends('layouts.app')
 
-    <!-- Session Status -->
-    <x-auth-session-status class="mb-4" :status="session('status')" />
+@section('content')
 
-    <form method="POST" action="{{ route('login') }}">
-        @csrf
+<div class="login-wrapper">
 
-        <!-- Email Address -->
-        <div>
-            <x-input-label for="email" :value="__('Email')" />
+    <div class="login-card">
 
-            <x-text-input
-                id="email"
-                class="block mt-1 w-full"
-                type="email"
-                name="email"
-                :value="old('email')"
-                required
-                autofocus
-                autocomplete="username"
-            />
+        <h2>🔐 Connexion</h2>
+        <p class="subtitle">Bienvenue sur BiblioTEK</p>
 
-            <x-input-error :messages="$errors->get('email')" class="mt-2" />
-        </div>
+        <form method="POST" action="{{ route('login') }}">
+            @csrf
 
-        <!-- Password -->
-        <div class="mt-4">
-
-            <x-input-label for="password" :value="__('Password')" />
-
-            <div style="display:flex;align-items:center">
-
-                <input
-                    id="password"
-                    type="password"
-                    name="password"
-                    required
-                    style="flex:1;border:1px solid #ccc;padding:8px;border-radius:4px"
-                >
-
-                <button
-                    type="button"
-                    onclick="togglePassword()"
-                    style="margin-left:10px"
-                >
-                    👁
-                </button>
-
+            <div class="input-group">
+                <label>Email</label>
+                <input type="email" name="email" required>
             </div>
 
-        </div>
+            <div class="input-group">
+                <label>Password</label>
+                <div class="password-wrapper">
+                    <input type="password" name="password" id="password" required>
+                    <span onclick="togglePassword()">👁</span>
+                </div>
+            </div>
 
-        <!-- Remember Me -->
-        <div class="block mt-4">
-            <label for="remember_me" class="inline-flex items-center">
+            <button class="btn-login">Se connecter</button>
 
-                <input
-                    id="remember_me"
-                    type="checkbox"
-                    class="rounded border-gray-300 text-indigo-600 shadow-sm focus:ring-indigo-500"
-                    name="remember"
-                >
+        </form>
 
-                <span class="ms-2 text-sm text-gray-600">
-                    {{ __('Remember me') }}
-                </span>
+    </div>
 
-            </label>
-        </div>
+</div>
 
-        <div class="flex items-center justify-end mt-4">
+@endsection
 
-            @if (Route::has('password.request'))
-
-                <a
-                    class="underline text-sm text-gray-600 hover:text-gray-900"
-                    href="{{ route('password.request') }}"
-                >
-                    {{ __('Forgot your password?') }}
-                </a>
-
-            @endif
-
-            <x-primary-button class="ms-3">
-                {{ __('Log in') }}
-            </x-primary-button>
-
-        </div>
-
-    </form>
-
-
-<!-- SCRIPT ICI -->
+@section('scripts')
 <script>
-
 function togglePassword() {
-
-    const password = document.getElementById("password");
-
-    if (password.type === "password") {
-
-        password.type = "text";
-
-    } else {
-
-        password.type = "password";
-
-    }
-
+    const input = document.getElementById("password");
+    input.type = input.type === "password" ? "text" : "password";
 }
-
 </script>
-
-</x-guest-layout>
+@endsection

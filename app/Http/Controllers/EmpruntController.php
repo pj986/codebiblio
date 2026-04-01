@@ -48,37 +48,38 @@ class EmpruntController extends Controller
 
     // 🔁 Retourner un livre
     public function retour($id)
-    {
-        $exemplaire = Exemplaire::findOrFail($id);
+{
+    $emprunt = Emprunt::findOrFail($id);
 
-        $emprunt = Emprunt::where('exemplaire_id', $id)
-            ->where('user_id', Auth::id())
-            ->first();
+    // 🔒 sécurité
+    if ($emprunt->user_id !== auth()->id()) {
+        return response()->json(['error' => 'Non autorisé'], 403);
+    }
 
-        if (!$emprunt) {
-            return redirect()->back()->with('error', 'Emprunt introuvable.');
-        }
+    // ⚠️ gestion retard
+    $messageRetard = '';
 
-        // ⚠️ Vérifier retard
-        $messageRetard = '';
+    if ($emprunt->date_retour_prevue && now()->gt($emprunt->date_retour_prevue)) {
+        $jours = now()->diffInDays($emprunt->date_retour_prevue);
+        $messageRetard = "⚠ Retard de {$jours} jour(s)";
+    }
 
-        if ($emprunt->date_retour && now()->gt($emprunt->date_retour)) {
-            $jours = now()->diffInDays($emprunt->date_retour);
-            $messageRetard = "⚠ Retard de {$jours} jour(s).";
-        }
-
-        // Rendre disponible
+    // 🔓 rendre exemplaire dispo
+    $exemplaire = $emprunt->exemplaire;
+    if ($exemplaire) {
         $exemplaire->disponible = true;
         $exemplaire->save();
-
-        // Supprimer emprunt
-        $emprunt->delete();
-
-        return redirect()->back()->with(
-            'success',
-            'Livre retourné avec succès. ' . $messageRetard
-        );
     }
+
+    // ✅ marquer comme retourné (MEILLEURE PRATIQUE)
+    $emprunt->date_retour = now();
+    $emprunt->save();
+
+    return response()->json([
+        'success' => true,
+        'retard' => $messageRetard
+    ]);
+}
 
     // 📱 Emprunt via QR code
     public function scanEmprunt(Request $request)

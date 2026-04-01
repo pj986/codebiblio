@@ -8,22 +8,28 @@ use Illuminate\Support\Facades\Auth;
 
 class LivreController extends Controller
 {
+    // 📚 PAGE CATALOGUE
     public function index(Request $request)
     {
         $query = Livre::query();
 
+        // 🔎 Recherche
         if ($request->search) {
-            $query->where('titre', 'like', '%'.$request->search.'%');
+            $query->where('titre', 'like', '%' . $request->search . '%');
         }
 
-        if ($request->categorie) {
+        // 📂 Filtre catégorie
+        if ($request->categorie && $request->categorie !== 'all') {
             $query->where('categorie', $request->categorie);
         }
 
-        $livres = $query->paginate(9)->withQueryString();
+        // 📄 Pagination
+        $livres = $query->latest()->paginate(9)->withQueryString();
 
+        // 📂 Liste des catégories
         $categories = Livre::select('categorie')->distinct()->pluck('categorie');
 
+        // ❤️ Favoris utilisateur
         $favorisIds = [];
 
         if (Auth::check()) {
@@ -33,21 +39,28 @@ class LivreController extends Controller
                 ->toArray();
         }
 
-        return view('livres.index', compact('livres','categories','favorisIds'));
+        return view('livres.index', compact('livres', 'categories', 'favorisIds'));
     }
 
+    // ⚡ AJAX (RECHERCHE DYNAMIQUE)
     public function ajax(Request $request)
     {
         $query = Livre::query();
 
+        // 🔎 Recherche
         if ($request->search) {
-            $query->where('titre', 'like', '%'.$request->search.'%');
+            $query->where('titre', 'like', '%' . $request->search . '%');
         }
 
-        if ($request->categorie) {
+        // 📂 Catégorie
+        if ($request->categorie && $request->categorie !== 'all') {
             $query->where('categorie', $request->categorie);
         }
 
-        return response()->json($query->get());
+        $livres = $query->latest()->paginate(9);
+
+        return response()->json([
+            'livres' => $livres
+        ]);
     }
 }

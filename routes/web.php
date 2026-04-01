@@ -1,61 +1,93 @@
 <?php
 
-use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
+
+// Controllers
+use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ProfilController;
-use App\Http\Controllers\BackOffice\UserController;
-use App\Http\Controllers\BackOffice\DashboardController;
 use App\Http\Controllers\RechercheController;
 use App\Http\Controllers\LivreController;
 use App\Http\Controllers\EmpruntController;
 use App\Http\Controllers\FavoriController;
 
-Route::get('/', [LivreController::class,'index']);
+// BackOffice
+use App\Http\Controllers\BackOffice\UserController;
+use App\Http\Controllers\BackOffice\DashboardController;
+use App\Http\Controllers\BackOffice\CompteController;
 
-Route::get('/dashboard', function () {
-    return view('dashboard');
-})->middleware(['auth', 'verified'])->name('dashboard');
+require __DIR__.'/auth.php';
+
+
+// =========================
+// 🌍 PUBLIC
+// =========================
+
+Route::get('/', [LivreController::class, 'index']);
+
+
+// =========================
+// 🔐 AUTHENTIFIÉ (USER)
+// =========================
 
 Route::middleware('auth')->group(function () {
 
+    // 👤 Profil
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
-    Route::prefix('emprunts')->group(function () {
-    Route::post('/{id}/emprunter', [EmpruntController::class, 'emprunter']);
-    Route::post('/{id}/retour', [EmpruntController::class, 'retour']);
-});
     Route::get('/profil/{id}', [ProfilController::class, 'show']);
-     // ❤️ FAVORIS
-    Route::post('/favori/{id}', [FavoriController::class, 'toggle']);
-    Route::get('/ajax/livres', [LivreController::class, 'ajax']);
-    Route::post('/ajax/favori/{id}', [FavoriController::class, 'toggleAjax'])->middleware('auth');
 
-});
-
-Route::middleware(['auth','admin'])->prefix('bo')->group(function () {
-
-    Route::get('/dashboard', [DashboardController::class,'index']);
-
-    Route::get('/profils', [UserController::class,'index']);
-    Route::get('/profils/{id}', [UserController::class,'show']);
-    Route::delete('/profils/{id}', [UserController::class,'destroy']);
-    Route::post('/profils/{id}/unblock', [UserController::class, 'unblock']);
-
-    Route::get('/recherche', [RechercheController::class,'index']);
-    Route::get('/api/recherche-livres', [RechercheController::class, 'ajax']);
-
-    Route::get('/scanner', function(){
-        return view('scanner.index');
+    // 📚 Emprunts
+    Route::prefix('emprunts')->group(function () {
+        Route::post('/{id}/emprunter', [EmpruntController::class, 'emprunter']);
+        Route::post('/{id}/retour', [EmpruntController::class, 'retour']);
     });
 
-    Route::post('/scanner/emprunter', [EmpruntController::class, 'scanEmprunt']);
+    // ❤️ Favoris
+    Route::post('/favori/{id}', [FavoriController::class, 'toggle']);
+
+    // ⚡ AJAX livres
+    Route::get('/ajax/livres', [LivreController::class, 'ajax']);
+
+    // 👤 Mon espace (IMPORTANT)
+    Route::get('/bo/mes-activites', [CompteController::class, 'index']);
+
+});
+
+
+// =========================
+// 🛠️ ADMIN BACKOFFICE
+// =========================
+
+Route::middleware(['auth', 'admin'])->prefix('bo')->group(function () {
+
+    // 📊 Dashboard
+    Route::get('/dashboard', [DashboardController::class, 'index']);
+
+    // 👥 Utilisateurs
+    Route::get('/profils', [UserController::class, 'index']);
+    Route::get('/profils/{id}', [UserController::class, 'show']);
+    Route::delete('/profils/{id}', [UserController::class, 'destroy']);
+    Route::post('/profils/{id}/unblock', [UserController::class, 'unblock']);
 
     Route::post('/profils/{id}/reset-password', [UserController::class, 'resetPassword']);
     Route::post('/profils/{id}/toggle-admin', [UserController::class, 'toggleAdmin']);
     Route::get('/profils/export/csv', [UserController::class, 'exportCsv']);
 
-});
+    // ➕ Ajout utilisateur
+    Route::get('/profils/ajout', [UserController::class, 'create'])->name('admin.user.create');
+    Route::post('/profils/ajout', [UserController::class, 'store'])->name('admin.user.store');
 
-require __DIR__.'/auth.php';
+    // 🔎 Recherche
+    Route::get('/recherche', [RechercheController::class, 'index']);
+    Route::get('/api/recherche-livres', [RechercheController::class, 'ajax']);
+
+    // 📷 Scanner QR
+    Route::get('/scanner', function () {
+        return view('scanner.index');
+    });
+
+    Route::post('/scanner/emprunter', [EmpruntController::class, 'scanEmprunt']);
+
+});

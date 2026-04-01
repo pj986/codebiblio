@@ -1,36 +1,96 @@
 <!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
-    <head>
-        <meta charset="utf-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1">
-        <meta name="csrf-token" content="{{ csrf_token() }}">
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>BiblioTEK</title>
 
-        <title>{{ config('app.name', 'Laravel') }}</title>
+    <!-- CSRF -->
+    <meta name="csrf-token" content="{{ csrf_token() }}">
 
-        <!-- Fonts -->
-        <link rel="preconnect" href="https://fonts.bunny.net">
-        <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet" />
+    <!-- CSS GLOBAL -->
+    <link rel="stylesheet" href="/css/style.css">
 
-        <!-- Scripts -->
-        @vite(['resources/css/app.css', 'resources/js/app.js'])
-    </head>
-    <body class="font-sans antialiased">
-        <div class="min-h-screen bg-gray-100">
-            @include('layouts.navigation')
+</head>
 
-            <!-- Page Heading -->
-            @isset($header)
-                <header class="bg-white shadow">
-                    <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
-                        {{ $header }}
-                    </div>
-                </header>
-            @endisset
+<body>
 
-            <!-- Page Content -->
-            <main>
-                {{ $slot }}
-            </main>
-        </div>
-    </body>
+<!-- NAVBAR -->
+<nav class="navbar">
+    <div class="logo">📚 BiblioTEK</div>
+
+    <div class="nav-links">
+        <a href="/">Catalogue</a>
+
+        @auth
+            <span>{{ auth()->user()->name }}</span>
+
+            <form method="POST" action="/logout" style="display:inline">
+                @csrf
+                <button class="btn-logout">Logout</button>
+            </form>
+        @else
+            <a href="/login">Login</a>
+            <a href="/register">Register</a>
+        @endauth
+    </div>
+    <button onclick="toggleDark()" class="btn-dark">
+    🌙
+</button>
+</nav>
+
+<!-- CONTENU -->
+<div class="container">
+    @yield('content')
+</div>
+<div id="toast" class="toast"></div>
+<!-- 🔥 JS GLOBAL (TRÈS IMPORTANT) -->
+@yield('scripts')
+
+<script>
+
+// 🔥 AUTO DARK MODE
+function initDarkMode() {
+
+    const saved = localStorage.getItem("theme");
+
+    if (saved === "dark") {
+        document.body.classList.add("dark");
+    } else if (saved === "light") {
+        document.body.classList.remove("dark");
+    } else {
+        // AUTO système
+        if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+            document.body.classList.add("dark");
+        }
+    }
+}
+
+// 🔥 TOGGLE
+function toggleDark() {
+    document.body.classList.toggle("dark");
+
+    if (document.body.classList.contains("dark")) {
+        localStorage.setItem("theme", "dark");
+    } else {
+        localStorage.setItem("theme", "light");
+    }
+}
+
+initDarkMode();
+
+</script>
+<div id="toast" class="toast"></div>
+<script>
+function showToast(message) {
+    const toast = document.getElementById('toast');
+
+    toast.innerText = message;
+    toast.classList.add('show');
+
+    setTimeout(() => {
+        toast.classList.remove('show');
+    }, 2500);
+}
+</script>
+</body>
 </html>
