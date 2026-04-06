@@ -23,6 +23,9 @@ require __DIR__.'/auth.php';
 // =========================
 
 Route::get('/', [LivreController::class, 'index']);
+Route::get('/dashboard', function () {
+    return view('dashboard');
+})->name('dashboard')->middleware(['auth']);
 
 
 // =========================
@@ -61,6 +64,13 @@ Route::middleware('auth')->group(function () {
 // =========================
 
 Route::middleware(['auth', 'admin'])->prefix('bo')->group(function () {
+    Route::get('/livres', [LivreController::class, 'adminIndex']);
+    Route::get('/livres/create', [LivreController::class, 'create']);
+    Route::post('/livres', [LivreController::class, 'store']);
+    
+Route::get('/livres/{id}/edit', [LivreController::class, 'edit']);
+Route::post('/livres/{id}/update', [LivreController::class, 'update']);
+Route::delete('/livres/{id}', [LivreController::class, 'destroy']);
 
     // 📊 Dashboard
     Route::get('/dashboard', [DashboardController::class, 'index']);
@@ -70,6 +80,8 @@ Route::middleware(['auth', 'admin'])->prefix('bo')->group(function () {
     Route::get('/profils/{id}', [UserController::class, 'show']);
     Route::delete('/profils/{id}', [UserController::class, 'destroy']);
     Route::post('/profils/{id}/unblock', [UserController::class, 'unblock']);
+    
+    
 
     Route::post('/profils/{id}/reset-password', [UserController::class, 'resetPassword']);
     Route::post('/profils/{id}/toggle-admin', [UserController::class, 'toggleAdmin']);

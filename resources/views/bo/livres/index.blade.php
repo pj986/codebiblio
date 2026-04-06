@@ -80,4 +80,38 @@ function handleEmprunt(id) {
 
 </script>
 @endsection
+@extends('layouts.admin')
 
+@section('content')
+
+<h1>📚 Gestion des livres</h1>
+
+<a href="/bo/livres/create">➕ Ajouter un livre</a>
+
+<div style="display:flex; flex-wrap:wrap; gap:20px; margin-top:20px;">
+
+@foreach($livres as $livre)
+    <div class="card" style="width:200px;">
+        <img src="{{ asset('images/' . $livre->couverture) }}">
+        <h3>{{ $livre->titre }}</h3>
+        <p>{{ $livre->auteur }}</p>
+    </div>
+@endforeach
+
+</div>
+
+@endsection
+@section('scripts')
+
+<script>
+document.getElementById('searchAdmin').addEventListener('input', function() {
+    let value = this.value.toLowerCase();
+
+    document.querySelectorAll('#livresAdmin .card').forEach(card => {
+        let title = card.innerText.toLowerCase();
+        card.style.display = title.includes(value) ? 'block' : 'none';
+    });
+});
+</script>
+
+@endsection

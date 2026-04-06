@@ -702,3 +702,78 @@ body {
 .admin-container.collapsed .admin-content {
     margin-left: 90px;
 }
+.grid-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+}
+
+.chart-card {
+    background: white;
+    padding: 20px;
+    border-radius: 10px;
+}
+
+.card {
+    background: white;
+    padding: 20px;
+    border-radius: 10px;
+    margin-top: 20px;
+}
+.alert-retard {
+    background: #dc2626;
+    color: white;
+    padding: 12px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    font-weight: bold;
+}
+
+.retard-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px;
+    border-bottom: 1px solid #eee;
+}
+
+.actions {
+    display: flex;
+    gap: 10px;
+}
+
+.btn-link {
+    text-decoration: none;
+    color: #2563eb;
+}
+.toast {
+    position: fixed;
+    bottom: 30px;
+    right: 30px;
+    background: #10b981;
+    color: white;
+    padding: 12px 20px;
+    border-radius: 8px;
+    opacity: 0;
+    transform: translateY(20px);
+    transition: all 0.3s;
+    font-weight: bold;
+}
+
+.toast.show {
+    opacity: 1;
+    transform: translateY(0);
+}
+form input, form select, form textarea {
+    display: block;
+    width: 300px;
+    margin: 10px 0;
+    padding: 8px;
+}
+
+form button {
+    background: #3498db;
+    color: white;
+    padding: 10px;
+    border: none;
+}

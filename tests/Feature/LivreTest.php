@@ -10,16 +10,27 @@ class LivreTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_un_livre_peut_etre_cree()
+    public function test_affichage_catalogue()
     {
-        $livre = Livre::create([
-            'titre' => 'Test Livre',
-            'auteur' => 'Pierre',
-            'categorie' => 'Informatique'
+        Livre::factory()->create([
+            'titre' => 'Clean Code'
         ]);
 
-        $this->assertDatabaseHas('livres', [
-            'titre' => 'Test Livre'
-        ]);
+        $response = $this->get('/');
+
+        $response->assertStatus(200);
+        $response->assertSeeText('Clean Code');
+    }
+
+    public function test_recherche_livre()
+    {
+        Livre::factory()->create(['titre' => 'Laravel']);
+        Livre::factory()->create(['titre' => 'Java']);
+
+        $response = $this->get('/?search=Laravel');
+
+        $response->assertStatus(200);
+        $response->assertSee('Laravel');
+        $response->assertDontSee('Java');
     }
 }

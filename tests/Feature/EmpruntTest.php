@@ -14,24 +14,32 @@ class EmpruntTest extends TestCase
 
     public function test_un_utilisateur_peut_emprunter_un_livre()
     {
+        // 👤 user
         $user = User::factory()->create();
 
-        $livre = Livre::create([
-            'titre' => 'Livre Test',
-            'auteur' => 'Auteur Test',
-            'categorie' => 'Roman'
-        ]);
+        // 📚 livre
+        $livre = Livre::factory()->create();
 
+        // 📦 exemplaire dispo (OBLIGATOIRE)
         $exemplaire = Exemplaire::create([
             'livre_id' => $livre->id,
-            'etat' => 'excellent',
             'disponible' => true
         ]);
 
+        // 🔐 login
         $this->actingAs($user);
 
-        $response = $this->post('/emprunter/'.$exemplaire->id);
+        // 🚀 appel route
+        $response = $this->post('/emprunts/'.$livre->id.'/emprunter');
 
-        $response->assertStatus(302);
+        // ✅ JSON OK
+        $response->assertStatus(200);
+        $response->assertJson(['success' => true]);
+
+        // ✅ vérifie DB (IMPORTANT : exemplaire_id)
+        $this->assertDatabaseHas('emprunts', [
+            'user_id' => $user->id,
+            'exemplaire_id' => $exemplaire->id
+        ]);
     }
 }

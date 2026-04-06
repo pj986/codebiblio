@@ -13,38 +13,36 @@ class EmpruntController extends Controller
 {
 
     // 📖 Emprunter un livre
-    public function emprunter($id)
-    {
-        $exemplaire = Exemplaire::findOrFail($id);
+   public function emprunter($id)
+{
+    $exemplaire = \App\Models\Exemplaire::where('livre_id', $id)
+        ->where('disponible', true)
+        ->first();
 
-        // Vérifier disponibilité
-        if (!$exemplaire->disponible) {
-            return redirect()->back()->with('error', 'Ce livre est déjà emprunté.');
-        }
-
-        $user = Auth::user();
-
-        // Créer l'emprunt
-        $emprunt = Emprunt::create([
-            'user_id' => $user->id,
-            'exemplaire_id' => $exemplaire->id,
-            'date_emprunt' => now(),
-            'date_retour' => now()->addDays(30) // délai 30 jours
+    if (!$exemplaire) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Aucun exemplaire disponible'
         ]);
-
-        // Rendre indisponible
-        $exemplaire->disponible = false;
-        $exemplaire->save();
-
-        // 📧 Envoi email (Mailtrap)
-        try {
-            Mail::to($user->email)->send(new LivreEmprunte($emprunt));
-        } catch (\Exception $e) {
-            // évite crash si mail non configuré
-        }
-
-        return redirect()->back()->with('success', 'Livre emprunté avec succès.');
     }
+
+    // créer emprunt
+    \App\Models\Emprunt::create([
+        'user_id' => auth()->id(),
+        'exemplaire_id' => $exemplaire->id,
+        'date_emprunt' => now(),
+        'date_retour_prevue' => now()->addDays(14)
+    ]);
+
+    // rendre indisponible
+    $exemplaire->disponible = false;
+    $exemplaire->save();
+
+    return response()->json([
+        'success' => true,
+        'message' => 'Livre emprunté'
+    ]);
+}
 
     // 🔁 Retourner un livre
     public function retour($id)
