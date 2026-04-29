@@ -9,13 +9,17 @@ use App\Http\Controllers\RechercheController;
 use App\Http\Controllers\LivreController;
 use App\Http\Controllers\EmpruntController;
 use App\Http\Controllers\FavoriController;
+use App\Http\Controllers\RegisterController;
+use App\Http\Controllers\AuthController;
+
 
 // BackOffice
 use App\Http\Controllers\BackOffice\UserController;
 use App\Http\Controllers\BackOffice\DashboardController;
 use App\Http\Controllers\BackOffice\CompteController;
 
-require __DIR__.'/auth.php';
+
+
 
 
 // =========================
@@ -47,18 +51,37 @@ Route::middleware('auth')->group(function () {
         Route::post('/{id}/retour', [EmpruntController::class, 'retour']);
     });
 
+    // 📚 Mes emprunts (AJOUT ICI 👇)
+    Route::get('/mes-emprunts', [EmpruntController::class, 'mesEmprunts'])
+        ->name('mes.emprunts');
+
     // ❤️ Favoris
     Route::post('/favori/{id}', [FavoriController::class, 'toggle']);
 
     // ⚡ AJAX livres
     Route::get('/ajax/livres', [LivreController::class, 'ajax']);
 
-    // 👤 Mon espace (IMPORTANT)
+    // 👤 Mon espace
     Route::get('/bo/mes-activites', [CompteController::class, 'index']);
 
 });
 
+// AUTH
+Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
+Route::post('/login', [AuthController::class, 'login']);
 
+Route::get('/register', [AuthController::class, 'showRegister'])->name('register');
+Route::post('/register', [AuthController::class, 'register']);
+
+Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
+// PROTÉGÉES
+Route::middleware(['auth'])->group(function () {
+
+    Route::get('/dashboard', function () {
+        return view('dashboard');
+    });
+
+});
 // =========================
 // 🛠️ ADMIN BACKOFFICE
 // =========================

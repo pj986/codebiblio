@@ -108,5 +108,14 @@ class EmpruntController extends Controller
             'message' => 'Livre emprunté via QR code'
         ]);
     }
+    public function mesEmprunts()
+{
+    $emprunts = \App\Models\Emprunt::with('livre')
+        ->where('user_id', auth()->id())
+        ->latest()
+        ->get();
+
+    return view('user.emprunts', compact('emprunts'));
+}
 
 }

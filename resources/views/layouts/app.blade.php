@@ -16,26 +16,48 @@
 
 <!-- NAVBAR -->
 <nav class="navbar">
+
     <div class="logo">📚 BiblioTEK</div>
 
     <div class="nav-links">
-        <a href="/">Catalogue</a>
+
+        <a href="/">🏠 Catalogue</a>
 
         @auth
-            <span>{{ auth()->user()->name }}</span>
 
-            <form method="POST" action="/logout" style="display:inline">
+            <span class="user-name">👤 {{ auth()->user()->name }}</span>
+
+            <!-- 📚 Mes emprunts -->
+            <a href="{{ route('mes.emprunts') }}">📚 Mes emprunts</a>
+
+            <!-- 👤 Mon espace -->
+            <a href="/bo/mes-activites">⚙️ Mon espace</a>
+
+            <!-- 👑 Admin -->
+            @if(auth()->user()->role === 'admin')
+                <a href="/bo/dashboard">👑 Admin</a>
+            @endif
+
+            <!-- 🚪 Logout -->
+            <form method="POST" action="{{ route('logout') }}" style="display:inline">
                 @csrf
-                <button class="btn-logout">Logout</button>
+                <button class="btn-logout">🚪 Logout</button>
             </form>
+
         @else
-            <a href="/login">Login</a>
-            <a href="/register">Register</a>
+
+            <a href="{{ route('login') }}">🔐 Login</a>
+            <a href="{{ route('register') }}">📝 Register</a>
+
         @endauth
+
+        <!-- 🌙 Dark mode -->
+        <button onclick="toggleDark()" class="btn-dark">
+            🌙
+        </button>
+
     </div>
-    <button onclick="toggleDark()" class="btn-dark">
-    🌙
-</button>
+
 </nav>
 
 <!-- CONTENU -->

@@ -63,83 +63,84 @@ class LivreController extends Controller
             'livres' => $livres
         ]);
     }
-}
 
-public function adminIndex()
-{
-    $livres = \App\Models\Livre::latest()->get();
-    return view('bo.livres.index', compact('livres'));
-}
-
-public function create()
-{
-    return view('bo.livres.create');
-}
-
-public function store(Request $request)
-{
-    $request->validate([
-        'titre' => 'required',
-        'auteur' => 'required',
-        'categorie' => 'required',
-        'image' => 'required|image|mimes:jpg,png,jpeg|max:2048'
-    ]);
-
-    // 📸 upload image
-    $imageName = time() . '.' . $request->image->extension();
-
-    $request->image->move(public_path('images'), $imageName);
-
-    // 💾 sauvegarde
-    \App\Models\Livre::create([
-        'titre' => $request->titre,
-        'auteur' => $request->auteur,
-        'description' => $request->description,
-        'categorie' => $request->categorie,
-        'couverture' => $imageName
-    ]);
-
-    return redirect('/bo/livres')->with('success', 'Livre ajouté');
-}
-// ✏️ EDIT
-public function edit($id)
-{
-    $livre = Livre::findOrFail($id);
-    return view('bo.livres.edit', compact('livre'));
-}
-
-// 🔄 UPDATE
-public function update(Request $request, $id)
-{
-    $livre = Livre::findOrFail($id);
-
-    $request->validate([
-        'titre' => 'required',
-        'auteur' => 'required',
-        'categorie' => 'required'
-    ]);
-
-    // 📸 image (optionnelle)
-    if ($request->hasFile('image')) {
-        $imageName = time().'.'.$request->image->extension();
-        $request->image->move(public_path('images'), $imageName);
-        $livre->couverture = $imageName;
+    // 🍉 ADMIN INDEX (Ajout de l'accolade fermante)
+    public function adminIndex()
+    {
+        $livres = \App\Models\Livre::latest()->get();
+        return view('bo.livres.index', compact('livres'));
     }
 
-    $livre->update([
-        'titre' => $request->titre,
-        'auteur' => $request->auteur,
-        'description' => $request->description,
-        'categorie' => $request->categorie,
-        'couverture' => $livre->couverture
-    ]);
+    public function create()
+    {
+        return view('bo.livres.create');
+    }
 
-    return redirect('/bo/livres')->with('success', 'Livre modifié');
-}
+    public function store(Request $request)
+    {
+        $request->validate([
+            'titre' => 'required',
+            'auteur' => 'required',
+            'categorie' => 'required',
+            'image' => 'required|image|mimes:jpg,png,jpeg|max:2048'
+        ]);
 
-// ❌ DELETE
-public function destroy($id)
-{
-    Livre::findOrFail($id)->delete();
-    return back()->with('success', 'Livre supprimé');
+        // 📸 upload image
+        $imageName = time() . '.' . $request->image->extension();
+
+        $request->image->move(public_path('images'), $imageName);
+
+        // 💾 sauvegarde
+        \App\Models\Livre::create([
+            'titre' => $request->titre,
+            'auteur' => $request->auteur,
+            'description' => $request->description,
+            'categorie' => $request->categorie,
+            'couverture' => $imageName
+        ]);
+
+        return redirect('/bo/livres')->with('success', 'Livre ajouté');
+    }
+    // ✏️ EDIT
+    public function edit($id)
+    {
+        $livre = Livre::findOrFail($id);
+        return view('bo.livres.edit', compact('livre'));
+    }
+
+    // 🔄 UPDATE
+    public function update(Request $request, $id)
+    {
+        $livre = Livre::findOrFail($id);
+
+        $request->validate([
+            'titre' => 'required',
+            'auteur' => 'required',
+            'categorie' => 'required'
+        ]);
+
+        // 📸 image (optionnelle)
+        if ($request->hasFile('image')) {
+            $imageName = time().'.'.$request->image->extension();
+            $request->image->move(public_path('images'), $imageName);
+            $livre->couverture = $imageName;
+        }
+
+        $livre->update([
+            'titre' => $request->titre,
+            'auteur' => $request->auteur,
+            'description' => $request->description,
+            'categorie' => $request->categorie,
+            'couverture' => $livre->couverture
+        ]);
+
+        return redirect('/bo/livres')->with('success', 'Livre modifié');
+    }
+
+    // ❌ DELETE
+    public function destroy($id)
+    {
+        Livre::findOrFail($id)->delete();
+        return back()->with('success', 'Livre supprimé');
+    }
 }
