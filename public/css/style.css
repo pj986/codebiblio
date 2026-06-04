@@ -306,3 +306,54 @@ body {
     border-radius: 8px;
     margin-bottom: 15px;
 }
+.book-card {
+    background: #ffffff;
+    color: #1f2937;
+    border-radius: 12px;
+    padding: 16px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.book-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.18);
+}
+
+.book-card h3,
+.book-card .book-title {
+    color: #111827;
+    font-weight: 700;
+    font-size: 18px;
+    margin-top: 12px;
+}
+
+.book-card p,
+.book-card .book-author {
+    color: #4b5563;
+    font-size: 14px;
+    margin: 6px 0;
+}
+
+.book-card button,
+.book-card .btn-emprunter {
+    margin-top: 10px;
+    background: #2563eb;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    padding: 8px 12px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.book-card button:hover,
+.book-card .btn-emprunter:hover {
+    background: #1d4ed8;
+}
+.books-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 26px;
+    padding: 0 30px 40px 30px;
+}

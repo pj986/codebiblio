@@ -44,26 +44,23 @@ class LivreController extends Controller
 
     // ⚡ AJAX (RECHERCHE DYNAMIQUE)
     public function ajax(Request $request)
-    {
-        $query = Livre::query();
+{
+    $query = \App\Models\Livre::query();
 
-        // 🔎 Recherche
-        if ($request->search) {
-            $query->where('titre', 'like', '%' . $request->search . '%');
-        }
-
-        // 📂 Catégorie
-        if ($request->categorie && $request->categorie !== 'all') {
-            $query->where('categorie', $request->categorie);
-        }
-
-        $livres = $query->latest()->paginate(9);
-
-        return response()->json([
-            'livres' => $livres
-        ]);
+    // 🔎 Recherche
+    if ($request->search) {
+        $query->where('titre', 'like', '%' . $request->search . '%');
     }
 
+    // 📂 Catégorie
+    if ($request->categorie && $request->categorie !== 'all') {
+        $query->where('categorie', $request->categorie);
+    }
+
+    $livres = $query->latest()->get();
+
+    return response()->json($livres);
+}
     // 🍉 ADMIN INDEX (Ajout de l'accolade fermante)
     public function adminIndex()
     {

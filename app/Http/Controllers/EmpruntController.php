@@ -8,6 +8,7 @@ use App\Models\Emprunt;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Mail;
 use App\Mail\LivreEmprunte;
+use Illuminate\Support\Facades\DB;
 
 class EmpruntController extends Controller
 {
@@ -15,35 +16,59 @@ class EmpruntController extends Controller
     // 📖 Emprunter un livre
    public function emprunter($id)
 {
-    $exemplaire = \App\Models\Exemplaire::where('livre_id', $id)
-        ->where('disponible', true)
-        ->first();
-
-    if (!$exemplaire) {
-        return response()->json([
-            'success' => false,
-            'message' => 'Aucun exemplaire disponible'
-        ]);
+    if (!auth()->check()) {
+        return redirect()->route('login');
     }
 
-    // créer emprunt
-    \App\Models\Emprunt::create([
-        'user_id' => auth()->id(),
-        'exemplaire_id' => $exemplaire->id,
-        'date_emprunt' => now(),
-        'date_retour_prevue' => now()->addDays(14)
-    ]);
+    $userId = auth()->id();
 
-    // rendre indisponible
-    $exemplaire->disponible = false;
-    $exemplaire->save();
+    DB::beginTransaction();
 
-    return response()->json([
-        'success' => true,
-        'message' => 'Livre emprunté'
-    ]);
+    try {
+        $hasEmprunt = Emprunt::where('user_id', $userId)
+            ->whereNull('date_retour_effective')
+            ->exists();
+
+        if ($hasEmprunt) {
+            DB::rollBack();
+
+            return back()->with('error', '❌ Vous devez rendre votre livre avant d’en emprunter un autre');
+        }
+
+        $exemplaire = Exemplaire::where('livre_id', $id)
+            ->where('disponible', true)
+            ->lockForUpdate()
+            ->first();
+
+        if (!$exemplaire) {
+            DB::rollBack();
+
+            return back()->with('error', '❌ Aucun exemplaire disponible');
+        }
+
+        Emprunt::create([
+            'user_id' => $userId,
+            'exemplaire_id' => $exemplaire->id,
+            'date_emprunt' => now(),
+            'date_retour_prevue' => now()->addDays(30),
+            'date_retour_effective' => null,
+        ]);
+
+        $exemplaire->disponible = false;
+        $exemplaire->save();
+
+        DB::commit();
+
+        return redirect()
+            ->route('mes.emprunts')
+            ->with('success', '✅ Livre emprunté avec succès');
+
+    } catch (\Exception $e) {
+        DB::rollBack();
+
+        return back()->with('error', '❌ Erreur serveur lors de l’emprunt');
+    }
 }
-
     // 🔁 Retourner un livre
     public function retour($id)
 {
@@ -70,7 +95,7 @@ class EmpruntController extends Controller
     }
 
     // ✅ marquer comme retourné (MEILLEURE PRATIQUE)
-    $emprunt->date_retour = now();
+    $emprunt->date_retour_effective = now();
     $emprunt->save();
 
     return response()->json([
@@ -97,7 +122,7 @@ class EmpruntController extends Controller
             'user_id' => Auth::id(),
             'exemplaire_id' => $exemplaire->id,
             'date_emprunt' => now(),
-            'date_retour' => now()->addDays(30)
+            'date_retour_effective' => now()->addDays(30)
         ]);
 
         $exemplaire->disponible = false;
@@ -110,12 +135,57 @@ class EmpruntController extends Controller
     }
     public function mesEmprunts()
 {
-    $emprunts = \App\Models\Emprunt::with('livre')
-        ->where('user_id', auth()->id())
+    $userId = auth()->id();
+
+    // 🔹 Statistiques
+    $total = Emprunt::where('user_id', $userId)->count();
+    $enCours = Emprunt::where('user_id', $userId)
+        ->whereNull('date_retour_effective')
+        ->count();
+    $retournes = Emprunt::where('user_id', $userId)
+        ->whereNotNull('date_retour_effective')
+        ->count();
+    $enRetard = Emprunt::where('user_id', $userId)
+        ->whereNull('date_retour_effective')
+        ->where('date_retour_prevue', '<', now())
+        ->count();
+
+    // 🔹 Liste détaillée des emprunts
+    $emprunts = Emprunt::with(['exemplaire.livre'])
+        ->where('user_id', $userId)
         ->latest()
         ->get();
 
-    return view('user.emprunts', compact('emprunts'));
+    // 📂 Liste des catégories pour le filtre
+    $categories = \App\Models\Livre::select('categorie')
+        ->distinct()
+        ->pluck('categorie');
+
+    // 🔹 Retourner la vue avec toutes les données
+    return view('user.emprunts', compact(
+        'total', 'enCours', 'retournes', 'enRetard', 'emprunts', 'categories'
+    ));
+}
+public function ajax(Request $request)
+{
+    $query = Emprunt::with(['exemplaire.livre'])
+        ->where('user_id', auth()->id());
+
+    // 🔎 Recherche
+    if ($request->search) {
+        $query->whereHas('exemplaire.livre', function ($q) use ($request) {
+            $q->where('titre', 'like', '%' . $request->search . '%');
+        });
+    }
+
+    // 📂 Catégorie
+    if ($request->categorie && $request->categorie !== 'all') {
+        $query->whereHas('exemplaire.livre', function ($q) use ($request) {
+            $q->where('categorie', $request->categorie);
+        });
+    }
+
+    return response()->json($query->latest()->get());
 }
 
 }

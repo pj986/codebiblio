@@ -138,6 +138,129 @@ Upload drag & drop
 API REST
 Application mobile
 Optimisation performances
+
+🚀 Mise en production de l'application
+🎯 Objectif
+
+L'objectif était de déployer l'application Laravel BiblioTEK dans un environnement de production réaliste, en utilisant une infrastructure moderne basée sur Docker et AWS.
+
+☁️ 1. Mise en place du serveur AWS
+Création d'une instance EC2 (Ubuntu)
+Connexion au serveur via SSH
+Mise à jour du système :
+sudo apt update && sudo apt upgrade -y
+📁 2. Déploiement du projet
+Transfert du projet depuis l’environnement local (WAMP) vers le serveur AWS :
+scp -i key.pem -r bibliotek ubuntu@IP:/var/www/
+Positionnement du projet :
+cd /var/www/bibliotek
+🐳 3. Containerisation avec Docker
+Installation de Docker :
+sudo apt install docker.io docker-compose -y
+Architecture mise en place :
+Nginx → serveur web
+PHP-FPM → exécution Laravel
+MySQL → base de données
+phpMyAdmin → administration BDD
+⚙️ 4. Configuration Docker
+
+Création des fichiers suivants :
+
+📄 Dockerfile
+
+Permet de configurer l’environnement PHP avec les extensions nécessaires.
+
+📄 docker-compose.yml
+
+Définition des services :
+
+app (Laravel)
+nginx
+mysql
+phpmyadmin
+🌐 Configuration Nginx
+
+Création du fichier :
+
+docker/nginx/default.conf
+
+Configuration :
+
+root : /var/www/public
+gestion des routes Laravel
+liaison avec PHP-FPM
+🛠️ 5. Configuration de Laravel
+
+Modification du fichier .env :
+
+DB_CONNECTION=mysql
+DB_HOST=mysql-laravel
+DB_PORT=3306
+DB_DATABASE=bibliotek
+DB_USERNAME=bibliotek
+DB_PASSWORD=******
+🚀 6. Lancement de l’application
+sudo docker-compose up -d --build
+⚠️ 7. Résolution de problèmes
+🔥 Conflit de port 80
+
+Erreur rencontrée :
+
+bind: address already in use
+
+Solution :
+
+sudo systemctl stop nginx
+sudo systemctl disable nginx
+🔌 Déconnexion SSH fréquente
+
+Erreur :
+
+client_loop: send disconnect
+
+Solution :
+
+ssh -i key.pem ubuntu@IP -o ServerAliveInterval=60
+🧪 8. Vérifications
+Vérification des containers :
+sudo docker ps
+Accès à l'application :
+http://IP-AWS
+Accès à phpMyAdmin :
+http://IP-AWS:8080
+
+💎 🔐 Accès à l’application en ligne
+🌐 Accès public
+
+L’application est accessible à l’adresse suivante :
+
+http://35.180.134.223
+
+👤 Comptes de test
+
+Afin de faciliter l’évaluation par le jury, plusieurs comptes de test ont été créés :
+
+🔹 Compte utilisateur
+Email : user@test.com
+Mot de passe : Test123!
+
+👉 Accès :
+
+Consultation du catalogue
+Emprunt de livres
+Gestion des emprunts
+🔹 Compte administrateur
+Email : admin@test.com
+Mot de passe : Admin123!
+
+👉 Accès :
+
+Back-office admin
+Gestion des livres (CRUD)
+Visualisation des statistiques
+Dashboard administrateur
+
+
 👨‍💻 Auteur
 
 Pierre-Jordan Tchokote

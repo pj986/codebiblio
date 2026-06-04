@@ -17,4 +17,8 @@ class Livre extends Model
         'categorie',
         'couverture'
     ];
+     public function emprunts()
+    {
+        return $this->hasMany(Emprunt::class);
+    }
 }

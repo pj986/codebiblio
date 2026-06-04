@@ -52,6 +52,16 @@
             </div>
 
         </div>
+        <div class="book-card">
+    <img src="{{ asset('storage/' . $livre->image) }}" alt="{{ $livre->titre }}">
+    <h3 class="book-title">{{ $livre->titre }}</h3>
+    <p class="book-author">{{ $livre->auteur }}</p>
+
+    <form method="POST" action="{{ route('emprunts.store', $livre->id) }}">
+        @csrf
+        <button type="submit" class="btn-emprunter">📖 Emprunter</button>
+    </form>
+</div>
     @endforeach
 
 </div>
