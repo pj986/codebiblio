@@ -1,4 +1,9 @@
 # 📚 BiblioTEK
+![Laravel](https://img.shields.io/badge/Laravel-10-red)
+![Docker](https://img.shields.io/badge/Docker-Enabled-blue)
+![AWS](https://img.shields.io/badge/AWS-Deployed-orange)
+
+# 📚 BiblioTEK
 
 Application web de gestion de bibliothèque développée avec **Laravel** dans le cadre du BTS SIO SLAM.
 
@@ -242,7 +247,7 @@ Afin de faciliter l’évaluation par le jury, plusieurs comptes de test ont ét
 
 🔹 Compte utilisateur
 Email : user@test.com
-Mot de passe : Test123!
+Mot de passe : Testcarstroup99!
 
 👉 Accès :
 
@@ -251,7 +256,7 @@ Emprunt de livres
 Gestion des emprunts
 🔹 Compte administrateur
 Email : admin@test.com
-Mot de passe : Admin123!
+Mot de passe : AdminWallou3!
 
 👉 Accès :
 

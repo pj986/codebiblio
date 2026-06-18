@@ -4,39 +4,56 @@
 
 <h1 class="page-title">📚 Catalogue</h1>
 
-<div id="livresContainer" class="books-grid">
+<div class="grid">
+
     @foreach($livres as $livre)
 
-        <div class="book-card">
+<div class="card">
 
-            <img 
-                src="{{ asset('images/' . $livre->couverture) }}" 
-                alt="{{ $livre->titre }}"
-                class="book-image"
-            >
+    <div class="image-wrapper">
+        <img 
+            src="{{ asset('images/' . $livre->couverture) }}" 
+            alt="{{ $livre->titre }}"
+            onerror="this.src='/images/default.png'"
+        >
+        
+        <!-- ✅ DISPONIBILITÉ -->
+    @if($livre->exemplaires->where('disponible', true)->count() == 0)
+        <span style="color:red;">❌ Indisponible</span>
+    @else
+        <span style="color:green;">✅ Disponible</span>
+    @endif
 
-            <h3 class="book-title">{{ $livre->titre }}</h3>
-            <p class="book-author">{{ $livre->auteur }}</p>
-
-            <button onclick="handleEmprunt({{ $livre->id }})" class="btn-emprunter">
+        <div class="overlay">
+            <button onclick="handleEmprunt({{ $livre->id }})" class="btn">
                 📖 Emprunter
             </button>
-
         </div>
+    </div>
 
-    @endforeach
+    <div class="card-content">
+        <h3>{{ $livre->titre }}</h3>
+        <p>{{ $livre->auteur }}</p>
+    </div>
+    <p>
+📦 {{ $livre->exemplaires->where('disponible', true)->count() }} disponibles
+</p>
+
+</div>
+
+@endforeach
 </div>
 
 @endsection
-
 @section('scripts')
-
 <script>
+
 function handleEmprunt(id) {
+
     const isLogged = {{ auth()->check() ? 'true' : 'false' }};
 
     if (!isLogged) {
-        showToast("⚠️ Connecte-toi pour emprunter");
+        showToast("⚡ Connecte-toi pour emprunter");
 
         setTimeout(() => {
             window.location.href = "/login";
@@ -49,6 +66,7 @@ function handleEmprunt(id) {
 }
 
 function emprunter(id) {
+
     fetch('/emprunts/' + id + '/emprunter', {
         method: 'POST',
         headers: {
@@ -58,36 +76,22 @@ function emprunter(id) {
     })
     .then(res => res.json())
     .then(data => {
+
         if (data.success) {
-            showToast(data.message ?? "📚 Livre emprunté avec succès");
+            showToast("📚 Livre emprunté");
 
             setTimeout(() => {
                 window.location.href = "/mes-emprunts";
             }, 1000);
         } else {
-            showToast(data.message ?? "❌ Impossible d’emprunter ce livre");
+            showToast(data.message);
         }
+
     })
     .catch(() => {
         showToast("❌ Erreur serveur");
     });
 }
 
-function showToast(message) {
-    const toast = document.getElementById('toast');
-
-    if (!toast) {
-        alert(message);
-        return;
-    }
-
-    toast.innerText = message;
-    toast.classList.add('show');
-
-    setTimeout(() => {
-        toast.classList.remove('show');
-    }, 2500);
-}
 </script>
-
 @endsection

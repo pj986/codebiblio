@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Livre;
 use Illuminate\Support\Facades\Auth;
+use SimpleSoftwareIO\QrCode\Facades\QrCode;
 
 class LivreController extends Controller
 {
@@ -24,8 +25,7 @@ class LivreController extends Controller
         }
 
         // 📄 Pagination
-        $livres = $query->latest()->paginate(9)->withQueryString();
-
+        $livres = $query->with('exemplaires')->latest()->paginate(9)->withQueryString();
         // 📂 Liste des catégories
         $categories = Livre::select('categorie')->distinct()->pluck('categorie');
 
@@ -74,30 +74,36 @@ class LivreController extends Controller
     }
 
     public function store(Request $request)
-    {
-        $request->validate([
-            'titre' => 'required',
-            'auteur' => 'required',
-            'categorie' => 'required',
-            'image' => 'required|image|mimes:jpg,png,jpeg|max:2048'
-        ]);
+{
+    $request->validate([
+        'titre' => 'required',
+        'auteur' => 'required',
+        'categorie' => 'required',
+        'image' => 'required|image|mimes:jpg,png,jpeg|max:2048'
+    ]);
 
-        // 📸 upload image
-        $imageName = time() . '.' . $request->image->extension();
+    // 📸 upload image
+    $imageName = time() . '.' . $request->image->extension();
+    $request->image->move(public_path('images'), $imageName);
 
-        $request->image->move(public_path('images'), $imageName);
+    // 💾 création livre
+    $livre = \App\Models\Livre::create([
+        'titre' => $request->titre,
+        'auteur' => $request->auteur,
+        'description' => $request->description,
+        'categorie' => $request->categorie,
+        'couverture' => $imageName
+    ]);
 
-        // 💾 sauvegarde
-        \App\Models\Livre::create([
-            'titre' => $request->titre,
-            'auteur' => $request->auteur,
-            'description' => $request->description,
-            'categorie' => $request->categorie,
-            'couverture' => $imageName
-        ]);
+    // 🎯 QR CODE AUTO
+    $qrName = 'qr_livre_' . $livre->id . '.png';
 
-        return redirect('/bo/livres')->with('success', 'Livre ajouté');
-    }
+    QrCode::format('png')
+        ->size(200)
+        ->generate($livre->id, public_path('qrcodes/' . $qrName));
+
+    return redirect('/bo/livres')->with('success', 'Livre ajouté avec QR Code');
+}
     // ✏️ EDIT
     public function edit($id)
     {

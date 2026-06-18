@@ -41,7 +41,19 @@
 
                 <h3>{{ $livre->titre }}</h3>
                 <p>{{ $livre->auteur }}</p>
-
+                <img 
+            src="{{ asset('qrcodes/qr_livre_' . $livre->id . '.png') }}" 
+            width="80"
+            style="margin-top:10px;"
+        >
+        <p style="font-size:12px; margin-top:5px;">📷 Scanner</p>
+        <a 
+    href="{{ asset('qrcodes/qr_livre_' . $livre->id . '.png') }}" 
+    download
+    class="btn-download"
+>
+    📥 Télécharger QR
+</a>
                 <button class="btn" onclick="emprunter({{ $livre->id }})">
                     📖 Emprunter
                 </button>
@@ -56,6 +68,7 @@
     <img src="{{ asset('storage/' . $livre->image) }}" alt="{{ $livre->titre }}">
     <h3 class="book-title">{{ $livre->titre }}</h3>
     <p class="book-author">{{ $livre->auteur }}</p>
+
 
     <form method="POST" action="{{ route('emprunts.store', $livre->id) }}">
         @csrf

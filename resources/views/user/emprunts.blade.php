@@ -74,6 +74,17 @@
                 @else
                     <span class="badge ongoing" style="background:#f1c40f; color:white; padding:4px 6px; border-radius:5px;">⏳ En cours</span>
                 @endif
+                @if(!$emprunt->date_retour_effective)
+    <button onclick="retourner({{ $emprunt->id }})" class="btn" style="margin-top:10px;">
+        🔄 Retourner
+    </button>
+@endif
+
+@if(!$emprunt->date_retour_effective && $emprunt->date_retour_prevue && now()->gt($emprunt->date_retour_prevue))
+    <span class="badge late">
+        ⚠️ En retard ({{ now()->diffInDays($emprunt->date_retour_prevue) }} jours)
+    </span>
+@endif
 
             </div>
         @endforeach
@@ -115,20 +126,29 @@ function loadEmprunts() {
                     : '';
 
                 container.innerHTML += `
-                    <div class="card" style="width:200px; padding:15px; background:white; border-radius:10px;">
-                        
-                        <img src="/images/${livre.couverture}" 
-                             style="width:100%; height:250px; object-fit:cover; border-radius:5px;">
+    <div class="card" style="width:200px; padding:15px; background:white; border-radius:10px;">
+        
+        <img src="/images/${livre.couverture}" 
+             style="width:100%; height:250px; object-fit:cover; border-radius:5px;">
 
-                        <h3>${livre.titre}</h3>
-                        <p>${livre.auteur}</p>
+        <h3>${livre.titre}</h3>
+        <p>${livre.auteur}</p>
 
-                        <p>📅 ${e.date_emprunt.substring(0,10)}</p>
+        <p>📅 ${e.date_emprunt.substring(0,10)}</p>
 
-                        ${statut}
-                        ${retard}
-                    </div>
-                `;
+        ${statut}
+        ${retard}
+
+        ${
+            !e.date_retour_effective 
+            ? `<button onclick="retourner(${e.id})" class="btn" style="margin-top:10px;">
+                    🔄 Retourner
+               </button>`
+            : ''
+        }
+
+    </div>
+`;
             });
 
         });
@@ -138,4 +158,41 @@ function loadEmprunts() {
 document.getElementById('search').addEventListener('input', loadEmprunts);
 document.getElementById('categorie').addEventListener('change', loadEmprunts);
 </script>
+@section('scripts')
+<script>
+
+function retourner(id) {
+    fetch('/emprunts/' + id + '/retour', {
+        method: 'POST',
+        headers: {
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+            'Accept': 'application/json'
+        }
+    })
+    .then(res => res.json())
+    .then(data => {
+
+       if (data.success) {
+
+    let message = "📚 Livre retourné";
+
+    if (data.retard) {
+        message += "<br>" + data.retard;
+    }
+
+    showToast(message);
+
+    setTimeout(() => {
+        location.reload();
+    }, 1000);
+}
+
+    })
+    .catch(() => {
+        showToast("❌ Erreur serveur");
+    });
+}
+
+</script>
+@endsection
 @endsection

@@ -25,10 +25,10 @@ use App\Http\Controllers\ProfilController;
 use App\Http\Controllers\EmpruntController;
 use App\Http\Controllers\FavoriController;
 use App\Http\Controllers\BackOffice\CompteController;
-use App\Http\Controllers\DashboardController; // ✅ AJOUT ICI
+use App\Http\Controllers\DashboardController; 
 
 
-Route::middleware('auth')->group(function () {
+Route::middleware(['auth','blocked'])->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])
     ->name('dashboard');
 
@@ -40,11 +40,17 @@ Route::middleware('auth')->group(function () {
     Route::get('/profil/{id}', [ProfilController::class, 'show'])->name('profil.show');
 
     // 📚 EMPRUNTS
-    Route::prefix('emprunts')->group(function () {
-        Route::post('/{id}/emprunter', [EmpruntController::class, 'emprunter'])->name('emprunter');
-        Route::post('/{id}/retour', [EmpruntController::class, 'retour'])->name('retourner');
-    });
+Route::prefix('emprunts')->group(function () {
 
+    Route::post('/{id}/emprunter', [EmpruntController::class, 'emprunter'])
+        ->middleware(['anti.spam','throttle:5,1'])
+        ->name('emprunter');
+
+    Route::post('/{id}/retour', [EmpruntController::class, 'retour'])
+        ->middleware(['throttle:10,1'])
+        ->name('retourner');
+
+}); 
     // 📚 MES EMPRUNTS
     Route::get('/mes-emprunts', [EmpruntController::class, 'mesEmprunts'])->name('mes.emprunts');
     Route::get('/ajax/emprunts', [EmpruntController::class, 'ajax'])->name('ajax.emprunts');
@@ -57,6 +63,10 @@ Route::middleware('auth')->group(function () {
 
     // 👤 MON ESPACE BACK OFFICE (user activité)
     Route::get('/bo/mes-activites', [CompteController::class, 'index'])->name('user.activites');
+    // 📚 récupérer infos livre (QR preview)
+    Route::get('/livre/{id}', function ($id) {
+        return \App\Models\Livre::findOrFail($id);
+    });
 });
 
 // =========================
@@ -78,7 +88,6 @@ Route::middleware(['auth','admin'])->prefix('bo')->group(function () {
     Route::delete('profils/{id}', [UserController::class, 'destroy'])->name('admin.users.destroy');
     Route::post('profils/{id}/unblock', [UserController::class, 'unblock'])->name('admin.users.unblock');
 
-});
     Route::post('/profils/{id}/reset-password', [UserController::class, 'resetPassword'])->name('admin.users.reset');
     Route::post('/profils/{id}/toggle-admin', [UserController::class, 'toggleAdmin'])->name('admin.users.toggleAdmin');
 
@@ -100,4 +109,10 @@ Route::middleware(['auth','admin'])->prefix('bo')->group(function () {
 
     // 📷 SCANNER QR
     Route::get('/scanner', function () { return view('scanner.index'); })->name('admin.scanner');
-    Route::post('/scanner/emprunter', [EmpruntController::class, 'scanEmprunt'])->name('admin.scanner.emprunter');
+    Route::post('/scanner/emprunter', [EmpruntController::class, 'scanEmprunt'])
+    ->middleware('throttle:10,1');
+    Route::post('/scanner/retour', [EmpruntController::class, 'scanRetour'])
+    ->middleware('throttle:10,1');
+
+});
+   

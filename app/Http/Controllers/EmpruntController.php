@@ -21,6 +21,16 @@ class EmpruntController extends Controller
     }
 
     $userId = auth()->id();
+    // 🔒 Vérifier si l'utilisateur a un retard
+$hasRetard = Emprunt::where('user_id', $userId)
+    ->whereNull('date_retour_effective')
+    ->whereNotNull('date_retour_prevue')
+    ->where('date_retour_prevue', '<', now())
+    ->exists();
+
+if ($hasRetard) {
+    return back()->with('error', '⛔ Impossible d’emprunter : vous avez un livre en retard');
+}
 
     DB::beginTransaction();
 
@@ -81,12 +91,15 @@ class EmpruntController extends Controller
 
     // ⚠️ gestion retard
     $messageRetard = '';
+    $penalite = 0;
 
     if ($emprunt->date_retour_prevue && now()->gt($emprunt->date_retour_prevue)) {
-        $jours = now()->diffInDays($emprunt->date_retour_prevue);
-        $messageRetard = "⚠ Retard de {$jours} jour(s)";
-    }
+    $jours = now()->diffInDays($emprunt->date_retour_prevue);
 
+    $penalite = $jours * 1; // 💰 1€ / jour
+
+    $messageRetard = "⚠ Retard de {$jours} jour(s) - Pénalité : {$penalite}€";
+}
     // 🔓 rendre exemplaire dispo
     $exemplaire = $emprunt->exemplaire;
     if ($exemplaire) {
@@ -99,9 +112,10 @@ class EmpruntController extends Controller
     $emprunt->save();
 
     return response()->json([
-        'success' => true,
-        'retard' => $messageRetard
-    ]);
+    'success' => true,
+    'retard' => $messageRetard,
+    'penalite' => $penalite
+]);
 }
 
     // 📱 Emprunt via QR code
@@ -186,6 +200,65 @@ public function ajax(Request $request)
     }
 
     return response()->json($query->latest()->get());
+}
+public function scanRetour(Request $request)
+{
+    $livreId = $request->livre_id;
+
+    if (!auth()->check()) {
+        return response()->json([
+            'success' => false,
+            'message' => '⚠️ Non connecté'
+        ]);
+    }
+
+    try {
+
+        // 🔍 trouver emprunt actif
+        $emprunt = Emprunt::whereHas('exemplaire', function ($q) use ($livreId) {
+            $q->where('livre_id', $livreId);
+        })
+        ->where('user_id', auth()->id())
+        ->whereNull('date_retour_effective')
+        ->first();
+
+        if (!$emprunt) {
+            return response()->json([
+                'success' => false,
+                'message' => '❌ Aucun emprunt actif pour ce livre'
+            ]);
+        }
+
+        // 🔁 rendre exemplaire
+        $exemplaire = $emprunt->exemplaire;
+        $exemplaire->disponible = true;
+        $exemplaire->save();
+
+        // ⚠️ gestion retard
+        $messageRetard = '';
+
+        if ($emprunt->date_retour_prevue && now()->gt($emprunt->date_retour_prevue)) {
+            $jours = now()->diffInDays($emprunt->date_retour_prevue);
+            $messageRetard = "⚠ Retard de {$jours} jour(s)";
+        }
+
+        // ✅ retour
+        $emprunt->date_retour_effective = now();
+        $emprunt->save();
+
+        return response()->json([
+            'success' => true,
+            'message' => '📚 Livre retourné avec succès',
+            'retard' => $messageRetard
+        ]);
+
+    } catch (\Exception $e) {
+
+        return response()->json([
+            'success' => false,
+            'message' => '❌ Erreur serveur'
+        ]);
+    }
 }
 
 }

@@ -21,4 +21,8 @@ class Livre extends Model
     {
         return $this->hasMany(Emprunt::class);
     }
+    public function exemplaires()
+{
+    return $this->hasMany(\App\Models\Exemplaire::class);
+}
 }
