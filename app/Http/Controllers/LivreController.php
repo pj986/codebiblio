@@ -99,8 +99,13 @@ class LivreController extends Controller
     $qrName = 'qr_livre_' . $livre->id . '.png';
 
     QrCode::format('png')
-        ->size(200)
-        ->generate($livre->id, public_path('qrcodes/' . $qrName));
+    ->size(200)
+    ->generate(url('/livre/' . $livre->id), public_path('qrcodes/' . $qrName));
+    
+    // 💾 SAUVEGARDE QR EN BDD
+    $livre->update([
+        'qr_code' => $qrName
+    ]);
 
     return redirect('/bo/livres')->with('success', 'Livre ajouté avec QR Code');
 }

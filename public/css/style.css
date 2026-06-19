@@ -308,7 +308,14 @@ body {
 .btn-primary:hover {
     transform: scale(1.03);
 }
-
+.btn-emprunter {
+    background: #e50914;
+    color: white;
+    padding: 12px 20px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+}
 /* ERREURS */
 .error-box {
     background: #fee2e2;
@@ -442,4 +449,53 @@ body {
     0% { opacity: 0; }
     50% { opacity: 0.8; }
     100% { opacity: 0; }
+}
+.actions {
+    margin-top: 30px;
+    display: flex;
+    gap: 15px;
+}
+.description {
+    margin-top: 20px;
+    line-height: 1.5;
+    opacity: 0.9;
+}
+.hero-book {
+    display: flex;
+    gap: 40px;
+    padding: 50px;
+    align-items: center;
+    background: linear-gradient(to right, #111, #222);
+    color: white;
+}
+
+.hero-img {
+    width: 280px;
+    border-radius: 15px;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.6);
+}
+
+.title {
+    font-size: 40px;
+    font-weight: bold;
+}
+
+.author {
+    opacity: 0.8;
+    margin-bottom: 10px;
+}
+.badge {
+    display: inline-block;
+    background: red;
+    padding: 5px 10px;
+    border-radius: 8px;
+    margin-bottom: 15px;
+}
+.btn-secondary {
+    background: #333;
+    color: white;
+    padding: 12px 20px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
 }

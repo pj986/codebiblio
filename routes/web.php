@@ -9,6 +9,11 @@ use App\Http\Controllers\LivreController;
 use App\Http\Controllers\AuthController;
 
 Route::get('/', [LivreController::class, 'index'])->name('catalogue');
+// 📖 PAGE LIVRE (QR + détail)
+Route::get('/livre/{id}', [LivreController::class, 'show'])->name('livre.show');
+
+Route::get('/2fa', [AuthController::class, 'show2FA']);
+Route::post('/2fa', [AuthController::class, 'verify2FA']);
 
 // AUTH
 Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
@@ -63,10 +68,7 @@ Route::prefix('emprunts')->group(function () {
 
     // 👤 MON ESPACE BACK OFFICE (user activité)
     Route::get('/bo/mes-activites', [CompteController::class, 'index'])->name('user.activites');
-    // 📚 récupérer infos livre (QR preview)
-    Route::get('/livre/{id}', function ($id) {
-        return \App\Models\Livre::findOrFail($id);
-    });
+   
 });
 
 // =========================
