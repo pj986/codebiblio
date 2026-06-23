@@ -255,8 +255,8 @@ Consultation du catalogue
 Emprunt de livres
 Gestion des emprunts
 🔹 Compte administrateur
-Email : admin@test.com
-Mot de passe : AdminWallou3!
+Email : admin@biblio.fr
+Mot de passe : Admin123!
 
 👉 Accès :
 

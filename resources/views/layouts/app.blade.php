@@ -13,6 +13,17 @@
 </head>
 
 <body>
+    @if(session('error'))
+    <div class="alert error">
+        ⚠️ {{ session('error') }}
+    </div>
+@endif
+
+@if(session('success'))
+    <div class="alert success">
+        ✅ {{ session('success') }}
+    </div>
+@endif
 
 <!-- NAVBAR -->
 <nav class="navbar">
@@ -41,7 +52,7 @@
             <!-- 🚪 Logout -->
             <form method="POST" action="{{ route('logout') }}" style="display:inline">
                 @csrf
-                <button class="btn-logout">🚪 Logout</button>
+                <button class="btn-logout">🚪 Déconnexion du compte</button>
             </form>
 
         @else

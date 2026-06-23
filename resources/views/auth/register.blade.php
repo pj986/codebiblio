@@ -2,6 +2,17 @@
 
     <form method="POST" action="{{ route('register') }}">
         @csrf
+        @if(session('error'))
+    <div class="alert error">
+        ⚠️ {{ session('error') }}
+    </div>
+@endif
+
+@if(session('success'))
+    <div class="alert success">
+        ✅ {{ session('success') }}
+    </div>
+@endif
 
         <!-- Name -->
         <div>
@@ -19,6 +30,7 @@
             />
 
             <x-input-error :messages="$errors->get('name')" class="mt-2" />
+
         </div>
 
 
@@ -36,7 +48,8 @@
                 autocomplete="username"
             />
 
-            <x-input-error :messages="$errors->get('email')" class="mt-2" />
+            <x-input-error :messages="$errors->get('email')" class="input-error" />
+
         </div>
 
 
@@ -64,22 +77,25 @@
                 >
                     👁
                 </button>
+                
 
             </div>
+            <p style="color:green; font-size:12px;">
+    🔐 Sécurité renforcée activée
+</p>
 
             <!-- Indicateur de force -->
             <p id="password-strength" style="font-size:12px;margin-top:6px"></p>
 
             <x-input-error :messages="$errors->get('password')" class="mt-2" />
+            <x-input-error :messages="$errors->get('password')" class="mt-2" />
 
-            <p style="font-size:12px;color:gray">
-                Le mot de passe doit contenir :
-                <br>• au moins 8 caractères
-                <br>• une majuscule
-                <br>• une minuscule
-                <br>• un chiffre
-                <br>• un caractère spécial
-            </p>
+<ul style="font-size:12px; margin-top:8px;">
+    <li>✔️ 8 caractères minimum</li>
+    <li>✔️ Majuscule et minuscule</li>
+    <li>✔️ Chiffre</li>
+    <li>✔️ Caractère spécial</li>
+</ul>
 
         </div>
 
@@ -99,6 +115,9 @@
             />
 
             <x-input-error :messages="$errors->get('password_confirmation')" class="mt-2" />
+            <p style="font-size:12px;color:gray;">
+    ✔️ Vérifiez que les mots de passe correspondent
+</p>
 
         </div>
 
@@ -161,21 +180,20 @@ function checkPasswordStrength() {
 
     if(strength <= 2){
 
-        strengthText.innerHTML = "Password strength: Weak";
+        strengthText.innerHTML = "🔴 Mot de passe faible";
 
         strengthText.style.color = "red";
 
     }
     else if(strength <= 4){
 
-        strengthText.innerHTML = "Password strength: Medium";
-
+        strengthText.innerHTML = "🟠 Mot de passe moyen";
         strengthText.style.color = "orange";
 
     }
     else{
 
-        strengthText.innerHTML = "Password strength: Strong";
+        strengthText.innerHTML = "🟢 Mot de passe fort";
 
         strengthText.style.color = "green";
 

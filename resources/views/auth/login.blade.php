@@ -14,13 +14,21 @@
 
             <div class="input-group">
                 <label>Email</label>
-                <input type="email" name="email" required>
+                <input type="email" name="email">
+
+@error('email')
+    <p style="color:red;">{{ $message }}</p>
+@enderror
             </div>
 
             <div class="input-group">
                 <label>Password</label>
                 <div class="password-wrapper">
-                    <input type="password" name="password" id="password" required>
+                    <input type="password" name="password">
+
+@error('password')
+    <p style="color:red;">{{ $message }}</p>
+@enderror
                     <span onclick="togglePassword()">👁</span>
                 </div>
             </div>
