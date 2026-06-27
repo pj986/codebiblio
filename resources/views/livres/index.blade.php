@@ -6,9 +6,9 @@
 
 <div class="grid">
 
-    @foreach($livres as $livre)
+@foreach($livres as $livre)
 
-<div class="card">
+<div class="card {{ $livre->exemplaires->where('disponible', true)->count() == 0 ? 'unavailable' : '' }}" id="livre-{{ $livre->id }}">
 
     <div class="image-wrapper">
         <img 
@@ -16,28 +16,56 @@
             alt="{{ $livre->titre }}"
             onerror="this.src='/images/default.png'"
         >
-        
-        <!-- ✅ DISPONIBILITÉ -->
-    @if($livre->exemplaires->where('disponible', true)->count() == 0)
-        <span style="color:red;">❌ Indisponible</span>
-    @else
-        <span style="color:green;">✅ Disponible</span>
-    @endif
 
         <div class="overlay">
-            <button onclick="handleEmprunt({{ $livre->id }})" class="btn">
-                📖 Emprunter
-            </button>
+
+            <!-- ✅ BADGE DYNAMIQUE -->
+            <span id="badge-{{ $livre->id }}">
+                @if($livre->exemplaires->where('disponible', true)->count() == 0)
+                    <span class="badge badge-red">❌ Indisponible</span>
+                @else
+                    <span class="badge badge-green">✅ Disponible</span>
+                @endif
+            </span>
+
+            <!-- 🎯 BOUTON DYNAMIQUE -->
+            @if($livre->exemplaires->where('disponible', true)->count() == 0)
+
+                <button class="btn disabled" disabled title="Aucun exemplaire disponible">
+                    ❌ Indisponible
+                </button>
+
+            @else
+
+                <button 
+                    id="btn-{{ $livre->id }}"
+                    onclick="handleEmprunt({{ $livre->id }})" 
+                    class="btn"
+                >
+                    📖 Emprunter
+                </button>
+
+            @endif
+
         </div>
     </div>
 
     <div class="card-content">
+        <button 
+    id="fav-{{ $livre->id }}"
+    onclick="toggleFavori({{ $livre->id }})"
+    class="btn-fav"
+>
+    🤍
+</button>
         <h3>{{ $livre->titre }}</h3>
         <p>{{ $livre->auteur }}</p>
     </div>
-    <p>
-📦 {{ $livre->exemplaires->where('disponible', true)->count() }} disponibles
-</p>
+
+    <!-- 📦 STOCK -->
+    <p id="stock-{{ $livre->id }}">
+        📦 {{ $livre->exemplaires->where('disponible', true)->count() }} disponibles
+    </p>
 
 </div>
 
@@ -45,8 +73,62 @@
 </div>
 
 @endsection
+
 @section('scripts')
 <script>
+function toggleFavori(id) {
+
+    const isLogged = {{ auth()->check() ? 'true' : 'false' }};
+
+    if (!isLogged) {
+        showToast("⚡ Connecte-toi pour ajouter aux favoris");
+
+        setTimeout(() => {
+            window.location.href = "/login";
+        }, 1200);
+
+        return;
+    }
+
+    fetch('/favori/' + id, {
+        method: 'POST',
+        headers: {
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+            'Accept': 'application/json'
+        }
+    })
+    .then(res => res.json())
+    .then(data => {
+
+        if (data.success) {
+
+            showToast(data.message);
+
+            updateFavoriUI(id, data.favori);
+
+        } else {
+            showToast(data.message);
+        }
+
+    })
+    .catch(() => {
+        showToast("❌ Erreur serveur");
+    });
+}
+
+function updateFavoriUI(id, isFavori) {
+
+    const btn = document.getElementById("fav-" + id);
+
+    if (isFavori) {
+        btn.innerHTML = "💖";
+        btn.classList.add("active");
+    } else {
+        btn.innerHTML = "🤍";
+        btn.classList.remove("active");
+    }
+
+}
 
 function handleEmprunt(id) {
 
@@ -78,11 +160,11 @@ function emprunter(id) {
     .then(data => {
 
         if (data.success) {
-            showToast("📚 Livre emprunté");
 
-            setTimeout(() => {
-                window.location.href = "/mes-emprunts";
-            }, 1000);
+            showToast(data.message);
+
+            updateLivreUI(id);
+
         } else {
             showToast(data.message);
         }
@@ -91,6 +173,27 @@ function emprunter(id) {
     .catch(() => {
         showToast("❌ Erreur serveur");
     });
+}
+
+function updateLivreUI(id) {
+
+    const badge = document.getElementById("badge-" + id);
+    const btn = document.getElementById("btn-" + id);
+    const stock = document.getElementById("stock-" + id);
+
+    // 🔴 badge
+    badge.innerHTML = `<span class="badge badge-red">❌ Indisponible</span>`;
+
+    // 🔒 bouton
+    if (btn) {
+        btn.innerHTML = "❌ Indisponible";
+        btn.disabled = true;
+        btn.classList.add("disabled");
+    }
+
+    // 📦 stock
+    stock.innerHTML = "📦 0 disponibles";
+
 }
 
 </script>

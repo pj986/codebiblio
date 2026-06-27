@@ -7,53 +7,84 @@ use Illuminate\Support\Facades\Auth;
 
 class FavoriController extends Controller
 {
+
+    // ❤️ VERSION CLASSIQUE (si besoin formulaire)
     public function toggle($livreId)
     {
-        $userId = Auth::id();
-
-        // 🔒 sécurité (au cas où)
-        if (!$userId) {
+        if (!Auth::check()) {
             return redirect('/login');
         }
 
-        // 🔎 recherche existant
+        $userId = Auth::id();
+
         $favori = Favori::where('user_id', $userId)
             ->where('livre_id', $livreId)
             ->first();
 
         if ($favori) {
-            // ❌ supprimer favori
             $favori->delete();
 
-            return back()->with('success', 'Retiré des favoris');
+            return back()->with('success', '❌ Retiré des favoris');
         }
 
-        // ➕ ajouter favori
         Favori::create([
             'user_id' => $userId,
             'livre_id' => $livreId
         ]);
 
-        return back()->with('success', 'Ajouté aux favoris');
+        return back()->with('success', '❤️ Ajouté aux favoris');
     }
+
+
+    // ⚡ VERSION AJAX (UTILISÉE DANS TON FRONT)
     public function toggleAjax($livreId)
-{
-    $userId = auth()->id();
+    {
+        if (!Auth::check()) {
+            return response()->json([
+                'success' => false,
+                'message' => '⚠️ Non connecté'
+            ]);
+        }
 
-    $favori = Favori::where('user_id', $userId)
-        ->where('livre_id', $livreId)
-        ->first();
+        $userId = Auth::id();
 
-    if ($favori) {
-        $favori->delete();
-        return response()->json(['status' => 'removed']);
+        $favori = Favori::where('user_id', $userId)
+            ->where('livre_id', $livreId)
+            ->first();
+
+        if ($favori) {
+
+            $favori->delete();
+
+            return response()->json([
+                'success' => true,
+                'favori' => false,
+                'message' => '❌ Retiré des favoris'
+            ]);
+        }
+
+        Favori::create([
+            'user_id' => $userId,
+            'livre_id' => $livreId
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'favori' => true,
+            'message' => '❤️ Ajouté aux favoris'
+        ]);
     }
 
-    Favori::create([
-        'user_id' => $userId,
-        'livre_id' => $livreId
-    ]);
 
-    return response()->json(['status' => 'added']);
-}
+    // 📄 PAGE MES FAVORIS
+    public function index()
+    {
+        $favoris = Favori::with('livre')
+            ->where('user_id', Auth::id())
+            ->latest()
+            ->get();
+
+        return view('favoris.index', compact('favoris'));
+    }
+
 }

@@ -33,7 +33,7 @@ use App\Http\Controllers\BackOffice\CompteController;
 use App\Http\Controllers\DashboardController; 
 
 
-Route::middleware(['auth','blocked'])->group(function () {
+Route::middleware(['auth'])->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])
     ->name('dashboard');
 
@@ -61,7 +61,11 @@ Route::prefix('emprunts')->group(function () {
     Route::get('/ajax/emprunts', [EmpruntController::class, 'ajax'])->name('ajax.emprunts');
 
     // ❤️ FAVORIS
-    Route::post('/favori/{id}', [FavoriController::class, 'toggle'])->name('favori.toggle');
+    Route::post('/favori/{id}', [FavoriController::class, 'toggleAjax'])
+    ->name('favori.toggle');
+     Route::get('/mes-favoris', [FavoriController::class, 'index'])
+        ->name('mes.favoris');
+
 
     // ⚡ AJAX LIVRES
     Route::get('/ajax/livres', [LivreController::class, 'ajax'])->name('ajax.livres');

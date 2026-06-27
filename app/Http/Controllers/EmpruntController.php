@@ -17,24 +17,32 @@ class EmpruntController extends Controller
    public function emprunter($id)
 {
     if (!auth()->check()) {
-        return redirect()->route('login');
+        return response()->json([
+            'success' => false,
+            'message' => '⚠️ Non connecté'
+        ]);
     }
 
     $userId = auth()->id();
-    // 🔒 Vérifier si l'utilisateur a un retard
-$hasRetard = Emprunt::where('user_id', $userId)
-    ->whereNull('date_retour_effective')
-    ->whereNotNull('date_retour_prevue')
-    ->where('date_retour_prevue', '<', now())
-    ->exists();
 
-if ($hasRetard) {
-    return back()->with('error', '⛔ Impossible d’emprunter : vous avez un livre en retard');
-}
+    // 🔒 retard
+    $hasRetard = Emprunt::where('user_id', $userId)
+        ->whereNull('date_retour_effective')
+        ->whereNotNull('date_retour_prevue')
+        ->where('date_retour_prevue', '<', now())
+        ->exists();
+
+    if ($hasRetard) {
+        return response()->json([
+            'success' => false,
+            'message' => '⛔ Livre en retard'
+        ]);
+    }
 
     DB::beginTransaction();
 
     try {
+
         $hasEmprunt = Emprunt::where('user_id', $userId)
             ->whereNull('date_retour_effective')
             ->exists();
@@ -42,7 +50,10 @@ if ($hasRetard) {
         if ($hasEmprunt) {
             DB::rollBack();
 
-            return back()->with('error', '❌ Vous devez rendre votre livre avant d’en emprunter un autre');
+            return response()->json([
+                'success' => false,
+                'message' => '❌ Déjà un emprunt en cours'
+            ]);
         }
 
         $exemplaire = Exemplaire::where('livre_id', $id)
@@ -53,7 +64,10 @@ if ($hasRetard) {
         if (!$exemplaire) {
             DB::rollBack();
 
-            return back()->with('error', '❌ Aucun exemplaire disponible');
+            return response()->json([
+                'success' => false,
+                'message' => '❌ Aucun exemplaire disponible'
+            ]);
         }
 
         Emprunt::create([
@@ -69,14 +83,21 @@ if ($hasRetard) {
 
         DB::commit();
 
-        return redirect()
-            ->route('mes.emprunts')
-            ->with('success', '✅ Livre emprunté avec succès');
+        return response()->json([
+            'success' => true,
+            'message' => '📚 Livre emprunté avec succès'
+        ]);
 
     } catch (\Exception $e) {
+
         DB::rollBack();
 
-        return back()->with('error', '❌ Erreur serveur lors de l’emprunt');
+        \Log::error($e->getMessage());
+
+        return response()->json([
+            'success' => false,
+            'message' => '❌ Erreur serveur'
+        ]);
     }
 }
     // 🔁 Retourner un livre

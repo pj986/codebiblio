@@ -65,7 +65,7 @@ Puis :
 php artisan migrate
 php artisan serve
 
-👉 Accès : http://127.0.0.1:8000
+👉 Accès en local  : http://127.0.0.1:8000
 
 👤 Fonctionnalités utilisateur
 Consultation du catalogue 📚
@@ -237,7 +237,7 @@ http://IP-AWS:8080
 💎 🔐 Accès à l’application en ligne
 🌐 Accès public
 
-L’application est accessible à l’adresse suivante :
+L’application en production est accessible à l’adresse suivante :
 
 http://35.180.134.223
 

@@ -43,7 +43,12 @@
 
             <!-- 👤 Mon espace -->
             <a href="/bo/mes-activites">⚙️ Mon espace</a>
-
+            @auth
+<a href="{{ route('mes.favoris') }}" class="nav-link">
+    ❤️ Mes favoris 
+    <span class="badge-fav">{{ $countFavoris }}</span>
+</a>
+@endauth
             <!-- 👑 Admin -->
             @if(auth()->user()->role === 'admin')
                 <a href="/bo/dashboard">👑 Admin</a>
