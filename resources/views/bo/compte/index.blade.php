@@ -24,14 +24,14 @@
 <h2>⏳ À retourner</h2>
 @foreach($aRetourner as $e)
     <div class="card" style="background:#fee2e2;">
-        ⚠️ {{ $e->livre->titre }}
+        ⚠️ {{ $e->exemplaire->livre->titre }}
     </div>
 @endforeach
 
 <h2>✅ Historique</h2>
 @foreach($historique as $e)
     <div class="card">
-        ✔️ {{ $e->livre->titre }}
+        ✔️ {{ $e->exemplaire->livre->titre }}
     </div>
 @endforeach
 
@@ -47,7 +47,7 @@
 @foreach($enCours as $e)
 <div class="card">
 
-    <p>{{ $e->livre->titre }}</p>
+    <p>{{ $e->exemplaire->livre->titre }}</p>
 
     <button onclick="retourLivre({{ $e->id }}, this)" class="btn-retour">
         🔄 Retourner

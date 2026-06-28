@@ -1,6 +1,7 @@
 @extends('layouts.admin')
 
 @section('content')
+@vite(['resources/js/app.js'])
 
 <h1>📊 Dashboard Administrateur</h1>
 
@@ -68,7 +69,7 @@
 
 @section('scripts')
 
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
 
 <script>
 

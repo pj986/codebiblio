@@ -159,40 +159,58 @@ function emprunter(id) {
     .then(res => res.json())
     .then(data => {
 
-        if (data.success) {
+    showToast(data.message);
 
-            showToast(data.message);
+    if (data.success) {
 
-            updateLivreUI(id);
+        updateLivreUI(id, data.stock);
 
-        } else {
-            showToast(data.message);
-        }
+    } else {
+        showToast(data.message);
+    }
 
-    })
+})
     .catch(() => {
         showToast("❌ Erreur serveur");
     });
 }
 
-function updateLivreUI(id) {
+function updateLivreUI(id, stockValue) {
 
     const badge = document.getElementById("badge-" + id);
     const btn = document.getElementById("btn-" + id);
     const stock = document.getElementById("stock-" + id);
+    const card = document.getElementById("livre-" + id);
 
-    // 🔴 badge
-    badge.innerHTML = `<span class="badge badge-red">❌ Indisponible</span>`;
+    // 📦 UPDATE STOCK
+    stock.innerHTML = `📦 ${stockValue} disponibles`;
+    if (stockValue == 1) {
+    stock.innerHTML = "⚠️ Dernier exemplaire !";
+}
 
-    // 🔒 bouton
-    if (btn) {
+    // 🎨 COULEUR DYNAMIQUE
+    if (stockValue <= 2 && stockValue > 0) {
+        stock.style.color = "orange"; // ⚠️ stock faible
+    } else if (stockValue == 0) {
+        stock.style.color = "red"; // ❌ rupture
+    } else {
+        stock.style.color = "green"; // ✅ OK
+    }
+
+    // 🔴 BADGE
+    if (stockValue == 0) {
+        badge.innerHTML = `<span class="badge badge-red">❌ Indisponible</span>`;
+        card.classList.add("unavailable");
+    } else {
+        badge.innerHTML = `<span class="badge badge-green">✅ Disponible</span>`;
+    }
+
+    // 🔒 BOUTON
+    if (stockValue == 0 && btn) {
         btn.innerHTML = "❌ Indisponible";
         btn.disabled = true;
         btn.classList.add("disabled");
     }
-
-    // 📦 stock
-    stock.innerHTML = "📦 0 disponibles";
 
 }
 

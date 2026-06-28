@@ -8,21 +8,28 @@ use App\Models\Livre;
 
 class ExemplaireSeeder extends Seeder
 {
+    /**
+     * Run the database seeds.
+     */
     public function run(): void
     {
-
-        // récupérer tous les livres
+        // 📚 Récupérer tous les livres
         $livres = Livre::all();
 
         foreach ($livres as $livre) {
 
-            // nombre d'exemplaires par livre (entre 2 et 5)
-            $nombreExemplaires = rand(2,5);
+            // 🔒 Évite les doublons (si déjà des exemplaires → skip)
+            if ($livre->exemplaires()->exists()) {
+                continue;
+            }
+
+            // 🎲 Nombre aléatoire d'exemplaires (2 à 5)
+            $nombreExemplaires = rand(2, 5);
 
             for ($i = 0; $i < $nombreExemplaires; $i++) {
 
-                Exemplaire::create([
-                    'livre_id' => $livre->id,
+                // 💎 Création via relation Eloquent (plus propre)
+                $livre->exemplaires()->create([
                     'etat' => fake()->randomElement([
                         'excellent',
                         'bon',
@@ -34,6 +41,5 @@ class ExemplaireSeeder extends Seeder
             }
 
         }
-
     }
 }

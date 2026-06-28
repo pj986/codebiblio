@@ -8,7 +8,7 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
     <!-- CSS GLOBAL -->
-    <link rel="stylesheet" href="/css/style.css">
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
 
 </head>
 
@@ -117,7 +117,6 @@ function toggleDark() {
 initDarkMode();
 
 </script>
-<div id="toast" class="toast"></div>
 <script>
 function showToast(message) {
     const toast = document.getElementById('toast');

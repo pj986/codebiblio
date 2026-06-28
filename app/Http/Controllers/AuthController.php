@@ -53,7 +53,7 @@ class AuthController extends Controller
         $user = Auth::user();
 
         // 🔐 Génération code 2FA
-        $code = rand(100000, 999999);
+        $code = str_pad(random_int(0, 999999), 6, '0', STR_PAD_LEFT);
 
         $user->two_factor_code = $code;
         $user->two_factor_expires_at = now()->addMinutes(5);
@@ -104,7 +104,13 @@ public function verify2FA(Request $request)
     $user->two_factor_expires_at = null;
     $user->save();
 
+    // ✅ CONNEXION RÉELLE
     Auth::login($user);
+
+    // 🔥 AJOUT ICI (TRÈS IMPORTANT)
+    $user->update([
+        'last_login_at' => now()
+    ]);
 
     return redirect('/dashboard');
 }

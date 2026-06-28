@@ -14,91 +14,42 @@ class EmpruntController extends Controller
 {
 
     // 📖 Emprunter un livre
-   public function emprunter($id)
+   public function emprunter($livreId)
 {
-    if (!auth()->check()) {
+    $user = auth()->user();
+
+    // 🔒 trouver un exemplaire disponible
+    $exemplaire = \App\Models\Exemplaire::where('livre_id', $livreId)
+        ->where('disponible', true)
+        ->first();
+
+    if (!$exemplaire) {
         return response()->json([
             'success' => false,
-            'message' => '⚠️ Non connecté'
+            'message' => '❌ Aucun exemplaire disponible'
         ]);
     }
 
-    $userId = auth()->id();
+    // 🔥 rendre indisponible
+    $exemplaire->update([
+        'disponible' => false
+    ]);
 
-    // 🔒 retard
-    $hasRetard = Emprunt::where('user_id', $userId)
-        ->whereNull('date_retour_effective')
-        ->whereNotNull('date_retour_prevue')
-        ->where('date_retour_prevue', '<', now())
-        ->exists();
+    // 📚 créer emprunt
+    \App\Models\Emprunt::create([
+        'user_id' => $user->id,
+        'exemplaire_id' => $exemplaire->id,
+        'date_emprunt' => now(),
+        'date_retour_prevue' => now()->addDays(30)
+    ]);
 
-    if ($hasRetard) {
-        return response()->json([
-            'success' => false,
-            'message' => '⛔ Livre en retard'
-        ]);
-    }
-
-    DB::beginTransaction();
-
-    try {
-
-        $hasEmprunt = Emprunt::where('user_id', $userId)
-            ->whereNull('date_retour_effective')
-            ->exists();
-
-        if ($hasEmprunt) {
-            DB::rollBack();
-
-            return response()->json([
-                'success' => false,
-                'message' => '❌ Déjà un emprunt en cours'
-            ]);
-        }
-
-        $exemplaire = Exemplaire::where('livre_id', $id)
+    return response()->json([
+        'success' => true,
+        'message' => '📚 Livre emprunté',
+        'stock' => \App\Models\Exemplaire::where('livre_id', $livreId)
             ->where('disponible', true)
-            ->lockForUpdate()
-            ->first();
-
-        if (!$exemplaire) {
-            DB::rollBack();
-
-            return response()->json([
-                'success' => false,
-                'message' => '❌ Aucun exemplaire disponible'
-            ]);
-        }
-
-        Emprunt::create([
-            'user_id' => $userId,
-            'exemplaire_id' => $exemplaire->id,
-            'date_emprunt' => now(),
-            'date_retour_prevue' => now()->addDays(30),
-            'date_retour_effective' => null,
-        ]);
-
-        $exemplaire->disponible = false;
-        $exemplaire->save();
-
-        DB::commit();
-
-        return response()->json([
-            'success' => true,
-            'message' => '📚 Livre emprunté avec succès'
-        ]);
-
-    } catch (\Exception $e) {
-
-        DB::rollBack();
-
-        \Log::error($e->getMessage());
-
-        return response()->json([
-            'success' => false,
-            'message' => '❌ Erreur serveur'
-        ]);
-    }
+            ->count()
+    ]);
 }
     // 🔁 Retourner un livre
     public function retour($id)

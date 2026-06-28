@@ -246,7 +246,7 @@ http://35.180.134.223
 Afin de faciliter l’évaluation par le jury, plusieurs comptes de test ont été créés :
 
 🔹 Compte utilisateur
-Email : user@test.com
+Email : sophiecat@gmail.com
 Mot de passe : Testcarstroup99!
 
 👉 Accès :

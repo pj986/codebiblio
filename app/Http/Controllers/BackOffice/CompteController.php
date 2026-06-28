@@ -19,9 +19,9 @@ class CompteController extends Controller
             ->get();
 
         // 📖 EMPRUNTS EN COURS + BADGES
-        $enCours = Emprunt::with('livre')
+        $enCours = Emprunt::with('exemplaire.livre') 
             ->where('user_id', $userId)
-            ->whereNull('date_retour')
+            ->whereNull('date_retour_effective') 
             ->get()
             ->map(function ($e) {
 
@@ -42,10 +42,10 @@ class CompteController extends Controller
                 return $e;
             });
 
-        // ✅ HISTORIQUE
-        $historique = Emprunt::with('livre')
+        // 📚 HISTORIQUE
+        $historique = Emprunt::with('exemplaire.livre') 
             ->where('user_id', $userId)
-            ->whereNotNull('date_retour')
+            ->whereNotNull('date_retour_effective') 
             ->get();
 
         return view('bo.compte.index', compact(

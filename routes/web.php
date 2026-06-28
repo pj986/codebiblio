@@ -71,7 +71,9 @@ Route::prefix('emprunts')->group(function () {
     Route::get('/ajax/livres', [LivreController::class, 'ajax'])->name('ajax.livres');
 
     // 👤 MON ESPACE BACK OFFICE (user activité)
-    Route::get('/bo/mes-activites', [CompteController::class, 'index'])->name('user.activites');
+    Route::get('/bo/mes-activites', [CompteController::class, 'index'])
+    ->middleware(['auth'])
+    ->name('user.activites');
    
 });
 
