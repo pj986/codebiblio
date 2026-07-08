@@ -74,6 +74,12 @@ Route::prefix('emprunts')->group(function () {
     Route::get('/bo/mes-activites', [CompteController::class, 'index'])
     ->middleware(['auth'])
     ->name('user.activites');
+    // 📅 RÉSERVATION
+Route::post('/reservations/{id}', [ReservationController::class, 'reserver'])
+    ->name('reservation');
+    
+    Route::get('/mes-reservations', [ReservationController::class, 'index'])
+    ->name('mes.reservations');
    
 });
 

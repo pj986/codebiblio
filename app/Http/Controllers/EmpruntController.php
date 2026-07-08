@@ -77,6 +77,9 @@ class EmpruntController extends Controller
     if ($exemplaire) {
         $exemplaire->disponible = true;
         $exemplaire->save();
+
+        app(\App\Http\Controllers\ReservationController::class)
+        ->traiterReservation($exemplaire->livre_id);
     }
 
     // ✅ marquer comme retourné (MEILLEURE PRATIQUE)

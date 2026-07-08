@@ -54,4 +54,8 @@ public function favoris()
 {
     return $this->hasMany(\App\Models\Favori::class);
 }
+public function reservations()
+{
+    return $this->hasMany(Reservation::class);
+}
 }

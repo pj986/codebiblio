@@ -40,6 +40,7 @@
 
             <!-- 📚 Mes emprunts -->
             <a href="{{ route('mes.emprunts') }}">📚 Mes emprunts</a>
+            <a href="{{ route('mes.reservations') }}">📅 Mes réservations</a>
 
             <!-- 👤 Mon espace -->
             <a href="/bo/mes-activites">⚙️ Mon espace</a>
