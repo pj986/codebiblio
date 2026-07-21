@@ -15,6 +15,11 @@
             <div class="input-group">
                 <label>Email</label>
                 <input type="email" name="email">
+                @if(session('error'))
+    <div style="color:red;">
+        {{ session('error') }}
+    </div>
+@endif
 
 @error('email')
     <p style="color:red;">{{ $message }}</p>

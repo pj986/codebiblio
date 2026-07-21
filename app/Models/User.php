@@ -22,6 +22,8 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+        'login_attempts',
+        'blocked_until',
     ];
 
     /**
@@ -57,5 +59,9 @@ public function favoris()
 public function reservations()
 {
     return $this->hasMany(Reservation::class);
+}
+public function ips()
+{
+    return $this->hasMany(\App\Models\UserIp::class);
 }
 }

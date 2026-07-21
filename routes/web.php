@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\LivreController;
 use App\Http\Controllers\AuthController;
 
+
 Route::get('/', [LivreController::class, 'index'])->name('catalogue');
 // 📖 PAGE LIVRE (QR + détail)
 Route::get('/livre/{id}', [LivreController::class, 'show'])->name('livre.show');
@@ -31,7 +32,7 @@ use App\Http\Controllers\EmpruntController;
 use App\Http\Controllers\FavoriController;
 use App\Http\Controllers\BackOffice\CompteController;
 use App\Http\Controllers\DashboardController; 
-
+use App\Http\Controllers\ReservationController;
 
 Route::middleware(['auth'])->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])

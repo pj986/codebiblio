@@ -7,6 +7,12 @@ use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Mail;
+use App\Mail\CompteBloqueMail;
+use App\Models\UserIp;
+use App\Mail\AlerteIPMail;
+
+
 
 class AuthController extends Controller
 {
@@ -47,10 +53,43 @@ class AuthController extends Controller
     public function login(Request $request)
 {
     $credentials = $request->only('email', 'password');
+    $user = User::where('email', $request->email)->first();
+
+// ⛔ Vérifier si bloqué
+if ($user && $user->blocked_until && now()->lt($user->blocked_until)) {
+    return back()->with('error', '⛔ Compte bloqué temporairement');
+}
 
     if (Auth::attempt($credentials)) {
+        
 
         $user = Auth::user();
+        // ✅ Reset sécurité
+$user->login_attempts = 0;
+$user->blocked_until = null;
+$user->save();
+$currentIp = request()->ip();
+
+// 🔍 Vérifier IP connue
+$known = UserIp::where('user_id', $user->id)
+    ->where('ip', $currentIp)
+    ->exists();
+
+// ⚠️ NOUVELLE IP
+if (!$known) {
+
+    // 🔥 enregistrer IP
+    UserIp::create([
+        'user_id' => $user->id,
+        'ip' => $currentIp
+    ]);
+
+    // 📧 envoyer alerte
+    Mail::to($user->email)->send(
+        new AlerteIPMail($user, $currentIp)
+    );
+}
+
 
         // 🔐 Génération code 2FA
         $code = str_pad(random_int(0, 999999), 6, '0', STR_PAD_LEFT);
@@ -67,6 +106,21 @@ class AuthController extends Controller
 
         return redirect('/2fa')->with('code', $code); // temporaire pour test
     }
+    if ($user) {
+
+    $user->login_attempts++;
+
+    if ($user->login_attempts >= 5 && !$user->blocked_until) {
+
+        $user->blocked_until = now()->addMinutes(10);
+        $user->login_attempts = 0;
+
+        // 🔥 ENVOI EMAIL UNIQUE
+        Mail::to($user->email)->send(new CompteBloqueMail($user));
+    }
+
+    $user->save();
+}
 
     return back()->with('error', 'Identifiants invalides');
 }
