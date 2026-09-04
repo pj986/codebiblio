@@ -8,14 +8,6 @@ return new class extends Migration
 {
     public function up(): void
     {
-        // 🔐 Nombre de tentatives de connexion
-        if (!Schema::hasColumn('users', 'login_attempts')) {
-            Schema::table('users', function (Blueprint $table) {
-                $table->integer('login_attempts')->default(0);
-            });
-        }
-
-        // ⛔ Date de fin du blocage
         if (!Schema::hasColumn('users', 'blocked_until')) {
             Schema::table('users', function (Blueprint $table) {
                 $table->timestamp('blocked_until')->nullable();
@@ -25,12 +17,6 @@ return new class extends Migration
 
     public function down(): void
     {
-        if (Schema::hasColumn('users', 'login_attempts')) {
-            Schema::table('users', function (Blueprint $table) {
-                $table->dropColumn('login_attempts');
-            });
-        }
-
         if (Schema::hasColumn('users', 'blocked_until')) {
             Schema::table('users', function (Blueprint $table) {
                 $table->dropColumn('blocked_until');

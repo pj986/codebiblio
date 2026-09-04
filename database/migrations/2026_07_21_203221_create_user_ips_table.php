@@ -20,6 +20,8 @@ return new class extends Migration
             $table->string('ip');
 
             $table->timestamps();
+            $table->string('country')->nullable();
+$table->string('city')->nullable();
         });
     }
 

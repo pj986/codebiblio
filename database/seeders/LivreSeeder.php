@@ -17,7 +17,7 @@ class LivreSeeder extends Seeder
                 'auteur' => 'Robert C. Martin',
                 'categorie' => 'Informatique',
                 'description' => 'Guide de référence pour écrire du code propre et maintenable.',
-                'couverture' => null
+                'couverture' => 'clean-code.png',
             ],
 
             [
@@ -25,7 +25,7 @@ class LivreSeeder extends Seeder
                 'auteur' => 'Erich Gamma',
                 'categorie' => 'Informatique',
                 'description' => 'Les modèles de conception essentiels pour le développement logiciel.',
-                'couverture' => null
+                'couverture' => 'design-pattern.png',
             ],
 
             [
@@ -33,7 +33,7 @@ class LivreSeeder extends Seeder
                 'auteur' => 'Andrew Hunt',
                 'categorie' => 'Informatique',
                 'description' => 'Les bonnes pratiques pour devenir un développeur professionnel.',
-                'couverture' => null
+                'couverture' => 'thepragmaticprogrammer.png',
             ],
 
             [
@@ -41,7 +41,7 @@ class LivreSeeder extends Seeder
                 'auteur' => 'Antoine de Saint-Exupéry',
                 'categorie' => 'Roman',
                 'description' => 'Un classique de la littérature française.',
-                'couverture' => null
+                'couverture' => 'petit-prince-livre.png',
             ],
 
             [
@@ -49,7 +49,7 @@ class LivreSeeder extends Seeder
                 'auteur' => 'George Orwell',
                 'categorie' => 'Roman',
                 'description' => 'Un roman dystopique sur une société sous surveillance.',
-                'couverture' => null
+                'couverture' => '1984.png'
             ],
 
             [
@@ -57,7 +57,7 @@ class LivreSeeder extends Seeder
                 'auteur' => 'Yuval Noah Harari',
                 'categorie' => 'Histoire',
                 'description' => 'Une brève histoire de l’humanité.',
-                'couverture' => null
+                'couverture' => 'sapienslivre.png',
             ],
 
             [
@@ -65,7 +65,7 @@ class LivreSeeder extends Seeder
                 'auteur' => 'Sun Tzu',
                 'categorie' => 'Histoire',
                 'description' => 'Traité stratégique militaire antique.',
-                'couverture' => null
+                'couverture' => 'lartdeguerre.png',
             ],
 
             [
@@ -73,7 +73,7 @@ class LivreSeeder extends Seeder
                 'auteur' => 'J.K. Rowling',
                 'categorie' => 'Fantastique',
                 'description' => 'Premier tome de la saga Harry Potter.',
-                'couverture' => null
+                'couverture' => 'harrypotterlivre.png',
             ],
 
             [
@@ -81,7 +81,7 @@ class LivreSeeder extends Seeder
                 'auteur' => 'Victor Hugo',
                 'categorie' => 'Roman',
                 'description' => 'Chef-d\'œuvre de la littérature française.',
-                'couverture' => null
+                'couverture' => 'lesmisérablesvictorhugolivre.png',
             ],
 
             [
@@ -89,7 +89,7 @@ class LivreSeeder extends Seeder
                 'auteur' => 'Taylor Otwell',
                 'categorie' => 'Informatique',
                 'description' => 'Découverte du framework Laravel.',
-                'couverture' => null
+                'couverture' => 'laravel-book.jpg',
             ],
 
             [
@@ -97,15 +97,15 @@ class LivreSeeder extends Seeder
                 'auteur' => 'J.P. Delaney',
                 'categorie' => 'Thriller',
                 'description' => 'Un thriller psychologique sur un échange d’enfants à la naissance.',
-                'couverture' => null
+                'couverture' => 'tunous.jpg',
             ],
 
             [
                 'titre' => 'Les sciences informatiques',
-                'auteur' => 'Collectif',
+                'auteur' => 'Calen Kelmore',
                 'categorie' => 'Informatique',
                 'description' => 'Introduction aux bases de l’informatique moderne.',
-                'couverture' => null
+                'couverture' => 'science-info.jpg',
             ],
 
             [
@@ -113,7 +113,7 @@ class LivreSeeder extends Seeder
                 'auteur' => 'Collectif',
                 'categorie' => 'Informatique',
                 'description' => 'Guide pour approfondir les compétences informatiques.',
-                'couverture' => null
+                'couverture' => 'experteninfo.jpg',
             ],
 
             [
@@ -121,47 +121,48 @@ class LivreSeeder extends Seeder
                 'auteur' => 'Dan Gookin',
                 'categorie' => 'Informatique',
                 'description' => 'Livre pédagogique pour apprendre l’informatique.',
-                'couverture' => null
+                'couverture' => 'débutereninformatiquepourlesnuls.jpg',
             ],
-
             [
                 'titre' => 'Tout sur les réseaux et Internet',
-                'auteur' => 'Dunod',
+                'auteur' => 'Fabrice Lemainique',
                 'categorie' => 'Réseaux',
-                'description' => 'Comprendre le fonctionnement des réseaux informatiques.',
-                'couverture' => null
+                'description' => 'Introduction aux réseaux informatiques et à Internet.',
+                'couverture' => 'toutsurlesréseauxetinternet.jpg',
             ],
+
+            
 
             [
                 'titre' => 'L\'ordinateur pas à pas pour les nuls',
-                'auteur' => 'Dan Gookin',
+                'auteur' => 'Philip Escartin',
                 'categorie' => 'Informatique',
                 'description' => 'Apprendre à utiliser un ordinateur simplement.',
-                'couverture' => null
+                'couverture' => 'ordinateur.jpg',
             ],
 
             [
                 'titre' => 'Machine Learning et IA avec Python',
-                'auteur' => 'ENI',
+                'auteur' => 'Madjid Khichane',
                 'categorie' => 'Intelligence Artificielle',
                 'description' => 'Découverte du machine learning avec Python.',
-                'couverture' => null
+                'couverture' => 'machinelearningetiaavecpython.jpg'
             ],
 
             [
                 'titre' => 'L\'intelligence artificielle expliquée',
-                'auteur' => 'ENI',
+                'auteur' => 'David Bernet',
                 'categorie' => 'Intelligence Artificielle',
                 'description' => 'Introduction aux concepts fondamentaux de l’IA.',
-                'couverture' => null
+                'couverture' => 'intelligenceartificielleexpliquée.jpg'
             ],
 
             [
                 'titre' => 'Réseaux informatiques',
-                'auteur' => 'ENI',
+                'auteur' => 'José Dordoigne',
                 'categorie' => 'Réseaux',
                 'description' => 'Guide complet sur les réseaux informatiques.',
-                'couverture' => null
+                'couverture' => 'réseauxinformatiques.jpg'
             ],
 
         ];

@@ -8,7 +8,10 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
     <!-- CSS GLOBAL -->
-    @vite(['resources/css/app.css', 'resources/js/app.js'])
+@vite(['resources/css/app.css', 'resources/js/app.js'])
+
+<!-- JavaScript Vite -->
+@vite(['resources/js/app.js'])
 
 </head>
 

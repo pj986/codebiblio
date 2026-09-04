@@ -11,6 +11,8 @@ use Illuminate\Support\Facades\Mail;
 use App\Mail\CompteBloqueMail;
 use App\Models\UserIp;
 use App\Mail\AlerteIPMail;
+use App\Models\SecurityLog;
+
 
 
 
@@ -70,26 +72,42 @@ $user->blocked_until = null;
 $user->save();
 $currentIp = request()->ip();
 
-// 🔍 Vérifier IP connue
+// 🔍 vérifier IP connue
 $known = UserIp::where('user_id', $user->id)
     ->where('ip', $currentIp)
     ->exists();
 
-// ⚠️ NOUVELLE IP
 if (!$known) {
 
-    // 🔥 enregistrer IP
+    // 🌍 API GEO
+    $response = file_get_contents("http://ip-api.com/json/{$currentIp}");
+    $data = json_decode($response, true);
+
+    $country = $data['country'] ?? 'Inconnu';
+    $city = $data['city'] ?? 'Inconnu';
+
+    // 💾 sauvegarde
     UserIp::create([
         'user_id' => $user->id,
-        'ip' => $currentIp
+        'ip' => $currentIp,
+        'country' => $country,
+        'city' => $city
     ]);
 
-    // 📧 envoyer alerte
+    // 📧 EMAIL AVEC GEO
     Mail::to($user->email)->send(
-        new AlerteIPMail($user, $currentIp)
+        new AlerteIPMail($user, $currentIp, $country, $city)
     );
+    SecurityLog::create([
+    'user_id' => $user->id,
+    'event' => 'NEW_IP',
+    'ip_address' => $currentIp,
+    'user_agent' => $request->userAgent(),
+    'details' => [
+        'message' => 'Connexion depuis une nouvelle adresse IP'
+    ]
+]);
 }
-
 
         // 🔐 Génération code 2FA
         $code = str_pad(random_int(0, 999999), 6, '0', STR_PAD_LEFT);
@@ -108,29 +126,73 @@ if (!$known) {
     }
     if ($user) {
 
+    // 🔴 Enregistrer la tentative de connexion échouée
+    SecurityLog::create([
+        'user_id' => $user->id,
+        'event' => 'LOGIN_FAILED',
+        'ip_address' => $request->ip(),
+        'user_agent' => $request->userAgent(),
+        'details' => [
+            'message' => 'Mot de passe incorrect'
+        ]
+    ]);
+
+    // 🔐 Incrémenter le compteur
     $user->login_attempts++;
 
+    // ⛔ Blocage après 5 tentatives
     if ($user->login_attempts >= 5 && !$user->blocked_until) {
 
         $user->blocked_until = now()->addMinutes(10);
         $user->login_attempts = 0;
 
-        // 🔥 ENVOI EMAIL UNIQUE
-        Mail::to($user->email)->send(new CompteBloqueMail($user));
+        // 🔴 Enregistrer le blocage
+        SecurityLog::create([
+            'user_id' => $user->id,
+            'event' => 'ACCOUNT_BLOCKED',
+            'ip_address' => $request->ip(),
+            'user_agent' => $request->userAgent(),
+            'details' => [
+                'message' => 'Compte temporairement bloqué après plusieurs échecs',
+                'blocked_until' => $user->blocked_until->toDateTimeString()
+            ]
+        ]);
+
+        // 📧 Envoyer l'alerte
+        Mail::to($user->email)->send(
+            new CompteBloqueMail($user)
+        );
     }
 
     $user->save();
 }
-
     return back()->with('error', 'Identifiants invalides');
 }
 
     // LOGOUT
-    public function logout()
-    {
-        Auth::logout();
-        return redirect('/login');
+    public function logout(Request $request)
+{
+    $user = Auth::user();
+
+    if ($user) {
+        SecurityLog::create([
+            'user_id' => $user->id,
+            'event' => 'LOGOUT',
+            'ip_address' => $request->ip(),
+            'user_agent' => $request->userAgent(),
+            'details' => [
+                'message' => 'Déconnexion du compte'
+            ]
+        ]);
     }
+
+    Auth::logout();
+
+    $request->session()->invalidate();
+    $request->session()->regenerateToken();
+
+    return redirect('/login');
+}
     // PAGE 2FA
 public function show2FA()
 {
@@ -147,11 +209,23 @@ public function verify2FA(Request $request)
     }
 
     if (
-        $user->two_factor_code !== $request->code ||
-        now()->gt($user->two_factor_expires_at)
-    ) {
-        return back()->with('error', 'Code invalide ou expiré');
-    }
+    $user->two_factor_code !== $request->code ||
+    !$user->two_factor_expires_at ||
+    now()->gt($user->two_factor_expires_at)
+) {
+
+    SecurityLog::create([
+        'user_id' => $user->id,
+        'event' => 'TWO_FACTOR_FAILED',
+        'ip_address' => $request->ip(),
+        'user_agent' => $request->userAgent(),
+        'details' => [
+            'message' => 'Code 2FA invalide ou expiré'
+        ]
+    ]);
+
+    return back()->with('error', 'Code invalide ou expiré');
+}
 
     // reset code
     $user->two_factor_code = null;
@@ -160,6 +234,15 @@ public function verify2FA(Request $request)
 
     // ✅ CONNEXION RÉELLE
     Auth::login($user);
+    SecurityLog::create([
+    'user_id' => $user->id,
+    'event' => 'LOGIN_SUCCESS',
+    'ip_address' => $request->ip(),
+    'user_agent' => $request->userAgent(),
+    'details' => [
+        'message' => 'Connexion complète avec validation 2FA'
+    ]
+]);
 
     // 🔥 AJOUT ICI (TRÈS IMPORTANT)
     $user->update([

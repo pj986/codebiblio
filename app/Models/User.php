@@ -64,4 +64,8 @@ public function ips()
 {
     return $this->hasMany(\App\Models\UserIp::class);
 }
+public function securityLogs()
+{
+    return $this->hasMany(SecurityLog::class);
+}
 }
