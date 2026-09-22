@@ -12,65 +12,171 @@ class DashboardController extends Controller
 {
     public function index()
     {
-        // 📊 KPI
+        /*
+        |--------------------------------------------------------------------------
+        | KPI PRINCIPAUX
+        |--------------------------------------------------------------------------
+        */
+
         $users = User::count();
+
         $livres = Livre::count();
+
         $emprunts = Emprunt::count();
 
-        // 📈 Emprunts par jour (7 derniers jours)
-        $empruntsParJour = Emprunt::selectRaw('DATE(created_at) as day, COUNT(*) as total')
-            ->where('created_at', '>=', now()->subDays(7))
+        $empruntsActifs = Emprunt::whereNull('date_retour_effective')
+            ->count();
+
+        $retournes = Emprunt::whereNotNull('date_retour_effective')
+            ->count();
+
+        $nbRetards = Emprunt::whereNull('date_retour_effective')
+            ->whereNotNull('date_retour_prevue')
+            ->where('date_retour_prevue', '<', now())
+            ->count();
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | DERNIERS EMPRUNTS
+        |--------------------------------------------------------------------------
+        */
+
+        $derniersEmprunts = Emprunt::with([
+                'livre',
+                'user'
+            ])
+            ->orderByDesc('date_emprunt')
+            ->limit(8)
+            ->get();
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | EMPRUNTS DES 7 DERNIERS JOURS
+        |--------------------------------------------------------------------------
+        */
+
+        $empruntsParJour = Emprunt::selectRaw(
+                'DATE(date_emprunt) as day, COUNT(*) as total'
+            )
+            ->where(
+                'date_emprunt',
+                '>=',
+                now()->subDays(6)->startOfDay()
+            )
             ->groupBy('day')
             ->orderBy('day')
             ->get();
 
-        $labels = $empruntsParJour->pluck('day')->map(fn($d) => Carbon::parse($d)->format('d/m'));
-        $data = $empruntsParJour->pluck('total');
 
-        // 🥧 Répartition
-        $enCours = Emprunt::whereNull('date_retour')->count();
-        $retournes = Emprunt::whereNotNull('date_retour')->count();
-        $enRetard = Emprunt::whereNull('date_retour')
-            ->where('date_retour_prevue', '<', now())
-            ->count();
+        /*
+         * On génère toujours les 7 jours,
+         * même lorsqu'un jour contient 0 emprunt.
+         */
 
-        // 📚 📊 LIVRES PAR CATÉGORIE
-        $livresParCategorie = Livre::selectRaw('categorie, COUNT(*) as total')
+        $labels = collect();
+
+        $data = collect();
+
+        for ($i = 6; $i >= 0; $i--) {
+
+            $date = Carbon::today()->subDays($i);
+
+            $labels->push(
+                $date->format('d/m')
+            );
+
+            $total = $empruntsParJour
+                ->firstWhere(
+                    'day',
+                    $date->format('Y-m-d')
+                )
+                ?->total ?? 0;
+
+            $data->push($total);
+        }
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | LIVRES PAR CATÉGORIE
+        |--------------------------------------------------------------------------
+        */
+
+        $livresParCategorie = Livre::selectRaw(
+                'categorie, COUNT(*) as total'
+            )
+            ->whereNotNull('categorie')
             ->groupBy('categorie')
-            ->pluck('total', 'categorie');
+            ->orderByDesc('total')
+            ->pluck(
+                'total',
+                'categorie'
+            );
 
-        // 🏆 Top livres
-        $topLivres = Emprunt::selectRaw('livre_id, COUNT(*) as total')
+
+        /*
+        |--------------------------------------------------------------------------
+        | TOP 5 DES LIVRES
+        |--------------------------------------------------------------------------
+        */
+
+        $topLivres = Emprunt::selectRaw(
+                'livre_id, COUNT(*) as total'
+            )
+            ->whereNotNull('livre_id')
             ->groupBy('livre_id')
             ->orderByDesc('total')
             ->with('livre')
             ->limit(5)
             ->get();
 
-        // 🔴 RETARDS (ALERTE)
-        $retards = Emprunt::with(['livre', 'user'])
-            ->whereNull('date_retour')
+
+        /*
+        |--------------------------------------------------------------------------
+        | EMPRUNTS EN RETARD
+        |--------------------------------------------------------------------------
+        */
+
+        $retards = Emprunt::with([
+                'livre',
+                'user'
+            ])
+            ->whereNull('date_retour_effective')
             ->whereNotNull('date_retour_prevue')
-            ->where('date_retour_prevue', '<', now())
+            ->where(
+                'date_retour_prevue',
+                '<',
+                now()
+            )
             ->orderBy('date_retour_prevue')
             ->limit(5)
             ->get();
 
-        $nbRetards = $retards->count();
 
-        return view('bo.dashboard', compact(
-            'users',
-            'livres',
-            'emprunts',
-            'labels',
-            'data',
-            'enCours',
-            'retournes',
-            'enRetard',
-            'livresParCategorie',
-            'topLivres',
-            'retards',
-            'nbRetards'
-        ));
+        /*
+        |--------------------------------------------------------------------------
+        | RETOUR VERS LE DASHBOARD
+        |--------------------------------------------------------------------------
+        */
+
+        return view(
+            'bo.dashboard',
+            compact(
+                'users',
+                'livres',
+                'emprunts',
+                'empruntsActifs',
+                'retournes',
+                'nbRetards',
+                'derniersEmprunts',
+                'labels',
+                'data',
+                'livresParCategorie',
+                'topLivres',
+                'retards'
+            )
+        );
     }
 }
