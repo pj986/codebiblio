@@ -202,53 +202,109 @@ public function show2FA()
 // VÉRIFICATION CODE
 public function verify2FA(Request $request)
 {
-    $user = User::find(session('2fa:user:id'));
+    // Validation du format
+    $request->validate([
+        'code' => ['required', 'digits:6'],
+    ]);
+
+    // Récupération de l'utilisateur en attente de 2FA
+    $user = User::find(
+        $request->session()->get('2fa:user:id')
+    );
 
     if (!$user) {
-        return redirect('/login');
+        return redirect()
+            ->route('login')
+            ->with('error', 'Session de connexion expirée.');
     }
 
+    /*
+    |--------------------------------------------------------------------------
+    | Vérification du code 2FA
+    |--------------------------------------------------------------------------
+    */
+
     if (
-    $user->two_factor_code !== $request->code ||
-    !$user->two_factor_expires_at ||
-    now()->gt($user->two_factor_expires_at)
-) {
+        !$user->two_factor_code ||
+        !$user->two_factor_expires_at ||
+        $user->two_factor_code !== $request->code ||
+        now()->gt($user->two_factor_expires_at)
+    ) {
+
+        SecurityLog::create([
+            'user_id' => $user->id,
+            'event' => 'TWO_FACTOR_FAILED',
+            'ip_address' => $request->ip(),
+            'user_agent' => $request->userAgent(),
+            'details' => [
+                'message' => 'Code 2FA invalide ou expiré'
+            ]
+        ]);
+
+        return back()->with(
+            'error',
+            'Code invalide ou expiré'
+        );
+    }
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | Code 2FA utilisé : on le supprime
+    |--------------------------------------------------------------------------
+    */
+
+    $user->two_factor_code = null;
+    $user->two_factor_expires_at = null;
+
+    // Dernière connexion réelle
+    $user->last_login_at = now();
+
+    $user->save();
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | Connexion définitive
+    |--------------------------------------------------------------------------
+    */
+
+    Auth::login($user);
+
+    // Nouvelle session après authentification
+    $request->session()->regenerate();
+
+    // Cette donnée n'est plus nécessaire
+    $request->session()->forget('2fa:user:id');
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | Journal de sécurité
+    |--------------------------------------------------------------------------
+    */
 
     SecurityLog::create([
         'user_id' => $user->id,
-        'event' => 'TWO_FACTOR_FAILED',
+        'event' => 'LOGIN_SUCCESS',
         'ip_address' => $request->ip(),
         'user_agent' => $request->userAgent(),
         'details' => [
-            'message' => 'Code 2FA invalide ou expiré'
+            'message' => 'Connexion complète avec validation 2FA'
         ]
     ]);
 
-    return back()->with('error', 'Code invalide ou expiré');
-}
 
-    // reset code
-    $user->two_factor_code = null;
-    $user->two_factor_expires_at = null;
-    $user->save();
+    /*
+    |--------------------------------------------------------------------------
+    | Redirection selon le rôle
+    |--------------------------------------------------------------------------
+    */
 
-    // ✅ CONNEXION RÉELLE
-    Auth::login($user);
-    SecurityLog::create([
-    'user_id' => $user->id,
-    'event' => 'LOGIN_SUCCESS',
-    'ip_address' => $request->ip(),
-    'user_agent' => $request->userAgent(),
-    'details' => [
-        'message' => 'Connexion complète avec validation 2FA'
-    ]
-]);
+    if ($user->role === 'admin') {
+        return redirect()->route('admin.dashboard');
+    }
 
-    // 🔥 AJOUT ICI (TRÈS IMPORTANT)
-    $user->update([
-        'last_login_at' => now()
-    ]);
-
-    return redirect('/dashboard');
+    return redirect()->route('catalogue');
 }
 }
